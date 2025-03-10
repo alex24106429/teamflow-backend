@@ -1,31 +1,22 @@
 package com.scrumchat.controller;
 
 import com.scrumchat.model.Message;
-import com.scrumchat.service.MessageService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import java.util.UUID;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
 
-@RestController
-@RequestMapping("/api/messages")
+@Controller
 public class MessageController {
     
-    private final MessageService messageService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public MessageController(MessageService messageService) {
-        this.messageService = messageService;
+    public MessageController(SimpMessagingTemplate messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
     }
 
-    @PostMapping
-    public ResponseEntity<Message> sendMessage(@RequestBody Message message) {
-        Message savedMessage = messageService.saveMessage(message);
-        return ResponseEntity.ok(savedMessage);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Message> getMessage(@PathVariable UUID id) {
-        return messageService.getMessageById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @MessageMapping("/chat/{sprintId}")
+    public void handleMessage(@DestinationVariable String sprintId, String messageContent) {
+        messagingTemplate.convertAndSend("/topic/chat/" + sprintId, messageContent);
     }
 }
