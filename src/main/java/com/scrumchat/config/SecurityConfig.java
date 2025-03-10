@@ -2,6 +2,7 @@ package com.scrumchat.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -23,9 +24,9 @@ public class SecurityConfig {
     private final JwtTokenProvider tokenProvider;
     private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(JwtAuthEntryPoint authEntryPoint, 
+    public SecurityConfig(JwtAuthEntryPoint authEntryPoint,
                          JwtTokenProvider tokenProvider,
-                         UserDetailsService userDetailsService) {
+                         @Lazy UserDetailsService userDetailsService) {
         this.authEntryPoint = authEntryPoint;
         this.tokenProvider = tokenProvider;
         this.userDetailsService = userDetailsService;
