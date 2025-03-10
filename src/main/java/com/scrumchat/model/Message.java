@@ -1,29 +1,31 @@
 package com.scrumchat.model;
 
 import jakarta.persistence.*;
-import java.util.UUID;
 
 @Entity
 public class Message {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     
     private String content;
     
     @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User sender;
-    
+
     @ManyToOne
-    private Team team;
+    @JoinColumn(name = "sprint_id", referencedColumnName = "id")
+    private Sprint sprint;
 
     // Getters and setters
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    public Long getId() { return id; }
     public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
     public User getSender() { return sender; }
+    public Sprint getSprint() { return sprint; }
+    
+    public void setId(Long id) { this.id = id; }
+    public void setContent(String content) { this.content = content; }
     public void setSender(User sender) { this.sender = sender; }
-    public Team getTeam() { return team; }
-    public void setTeam(Team team) { this.team = team; }
+    public void setSprint(Sprint sprint) { this.sprint = sprint; }
 }
