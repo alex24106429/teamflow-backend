@@ -36,6 +36,12 @@ public class User implements UserDetails {
 	private boolean credentialsNonExpired = true;
 	private boolean accountNonLocked = true;
 
+	// Explicitly implement getUsername for UserDetails compatibility
+	@Override
+	public String getUsername() {
+		return username;
+	}
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return authorities;
