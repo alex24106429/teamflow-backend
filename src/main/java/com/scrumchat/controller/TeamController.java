@@ -1,0 +1,26 @@
+package com.scrumchat.controller;
+
+import com.scrumchat.model.Team;
+import com.scrumchat.service.TeamService;
+import org.springframework.web.bind.annotation.*;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/teams")
+public class TeamController {
+	private final TeamService teamService;
+
+	public TeamController(TeamService teamService) {
+		this.teamService = teamService;
+	}
+
+	@PostMapping
+	public Team createTeam(@RequestBody Team team) {
+		return teamService.createTeam(team);
+	}
+
+	@GetMapping("/{teamId}")
+	public Team getTeam(@PathVariable UUID teamId) {
+		return teamService.getTeamById(teamId);
+	}
+}
