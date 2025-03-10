@@ -7,13 +7,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.Set;
 
 @Service
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -25,8 +29,16 @@ public class UserService implements UserDetailsService {
             .username(user.getUsername())
             .password(user.getPassword())
             .roles(user.getRoles().stream()
-                .map(role -> role.getName().name().replace("ROLE_", "")) // Convert ROLE_ADMIN to ADMIN
+                .map(role -> role.getName().name().replace("ROLE_", ""))
                 .toArray(String[]::new))
             .build();
+    }
+
+    public User createUser(String username, String password, Set<Role> roles) {
+        User newUser = new User();
+        newUser.setUsername(username);
+        newUser.setPassword(passwordEncoder.encode(password));
+        newUser.setRoles(roles);
+        return userRepository.save(newUser);
     }
 }

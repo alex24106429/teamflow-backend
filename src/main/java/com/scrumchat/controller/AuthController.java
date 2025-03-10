@@ -1,17 +1,30 @@
 package com.scrumchat.controller;
 
 import com.scrumchat.config.JwtTokenProvider;
+import com.scrumchat.service.UserService;
+import com.scrumchat.model.Role.RoleName;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import com.scrumchat.model.Role;
+import java.util.Collections;
 
 @RestController
 public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserService userService;
+    private final AuthenticationManager authenticationManager;
 
-    public AuthController(JwtTokenProvider jwtTokenProvider) {
+    public AuthController(JwtTokenProvider jwtTokenProvider, 
+                         UserService userService,
+                         AuthenticationManager authenticationManager) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.userService = userService;
+        this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/login")
@@ -19,11 +32,43 @@ public class AuthController {
         return jwtTokenProvider.generateToken(authentication);
     }
 
+    @PostMapping("/register")
+    public String register(@RequestBody RegisterRequest registerRequest) {
+        // Create role with correct enum value
+        Role userRole = new Role();
+        userRole.setName(RoleName.ROLE_USER);
+        
+        userService.createUser(
+            registerRequest.getUsername(),
+            registerRequest.getPassword(),
+            Collections.singleton(userRole)
+        );
+        
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                registerRequest.getUsername(),
+                registerRequest.getPassword()
+            )
+        );
+        
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return jwtTokenProvider.generateToken(authentication);
+    }
+
     static class LoginRequest {
         private String username;
         private String password;
         
-        // Getters and setters
+        public String getUsername() { return username; }
+        public void setUsername(String username) { this.username = username; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+    }
+
+    static class RegisterRequest {
+        private String username;
+        private String password;
+        
         public String getUsername() { return username; }
         public void setUsername(String username) { this.username = username; }
         public String getPassword() { return password; }
