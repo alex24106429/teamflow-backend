@@ -1,16 +1,18 @@
 package com.scrumchat.config;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import java.util.Date;
+import javax.crypto.SecretKey;
 
 @Component
 public class JwtTokenProvider {
-    private final String jwtSecret = "secretKey";
+    private final SecretKey jwtSecret = Keys.secretKeyFor(SignatureAlgorithm.HS512); // Generate a secure key
     private final long jwtExpirationMs = 86400000;
     
     private final UserDetailsService userDetailsService;
@@ -28,7 +30,7 @@ public class JwtTokenProvider {
                 .setSubject(user.getUsername())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(jwtSecret, SignatureAlgorithm.HS512) // Use the secure key
                 .compact();
     }
 
@@ -40,7 +42,7 @@ public class JwtTokenProvider {
 
     public String getUsernameFromToken(String token) {
         return Jwts.parserBuilder()
-            .setSigningKey(jwtSecret)
+            .setSigningKey(jwtSecret) // Use the secure key
             .build()
             .parseClaimsJws(token)
             .getBody()
@@ -50,7 +52,7 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                .setSigningKey(jwtSecret)
+                .setSigningKey(jwtSecret) // Use the secure key
                 .build()
                 .parseClaimsJws(token);
             return true;
