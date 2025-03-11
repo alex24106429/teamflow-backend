@@ -20,10 +20,11 @@ public class SprintService {
 		this.teamRepository = teamRepository;
 	}
 
-	public Sprint startSprint(UUID teamId) {
+	public Sprint startSprint(UUID teamId, String name) {
 		Sprint sprint = new Sprint();
 		Team team = teamRepository.findById(teamId).orElseThrow();
 		sprint.setTeam(team);
+		sprint.setName(name);
 		sprint.setStartDate(LocalDateTime.now());
 		return sprintRepository.save(sprint);
 	}

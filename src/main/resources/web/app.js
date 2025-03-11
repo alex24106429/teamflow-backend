@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sprints.forEach(sprint => {
             const sprintItem = document.createElement('div');
             sprintItem.className = 'channel-item';
-            sprintItem.innerHTML = `<i class="fas fa-hashtag"></i> <span>sprint-${sprint.id}</span>`;
+            sprintItem.innerHTML = `<i class="fas fa-hashtag"></i> <span>${sprint.name}</span>`;
             
             if (currentSprint && sprint.id === currentSprint.id) {
                 sprintItem.classList.add('active');
@@ -256,8 +256,11 @@ document.addEventListener('DOMContentLoaded', () => {
     startSprintBtn.addEventListener('click', async () => {
         if (!currentTeam) return;
         
+        const sprintName = prompt("Enter sprint name:", "Sprint Name");
+        if (!sprintName) return;
+
         try {
-            const sprint = await client.startSprint(currentTeam.id);
+            const sprint = await client.startSprint(currentTeam.id, sprintName);
             sprints.push(sprint);
             renderSprints();
             selectSprint(sprint);
@@ -274,12 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         currentSprint = sprint;
-        currentSprintName.textContent = `sprint-${sprint.id}`;
+        currentSprintName.textContent = sprint.name;
         
         // Update UI to show this sprint is selected
         document.querySelectorAll('.channel-item').forEach(item => {
             item.classList.remove('active');
-            if (item.querySelector('span').textContent === `sprint-${sprint.id}`) {
+            if (item.querySelector('span').textContent === `${sprint.name}`) {
                 item.classList.add('active');
             }
         });
@@ -287,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear chat messages
         chatMessages.innerHTML = `
             <div class="welcome-message">
-                <h2>Welcome to Sprint ${sprint.id}!</h2>
+                <h2>Welcome to Sprint ${sprint.name}!</h2>
                 <p>This is the beginning of your sprint discussion.</p>
             </div>
         `;

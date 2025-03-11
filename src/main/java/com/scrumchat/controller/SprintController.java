@@ -16,8 +16,8 @@ public class SprintController {
 	}
 
 	@PostMapping("/start")
-	public Sprint startSprint(@RequestParam UUID teamId) {
-		return sprintService.startSprint(teamId);
+	public Sprint startSprint(@RequestParam UUID teamId, @RequestParam String name) {
+		return sprintService.startSprint(teamId, name);
 	}
 
 	@PostMapping("/{sprintId}/stop")

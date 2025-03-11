@@ -6,6 +6,7 @@ CREATE TABLE team (
 
 CREATE TABLE sprint (
     id UUID PRIMARY KEY,
+    name VARCHAR(255),
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP,
     archive_path VARCHAR(255),

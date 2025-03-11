@@ -12,6 +12,7 @@ public class Sprint {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+    private String name;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private String archivePath;
