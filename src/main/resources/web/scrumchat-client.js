@@ -52,7 +52,7 @@ class ScrumChatClient {
 	async startSprint(teamId) {
 		return this._authenticatedFetch('/sprints/start', {
 			method: 'POST',
-			body: new URLSearchParams({ teamId })
+			body: JSON.stringify({ teamId })
 		});
 	}
 
@@ -64,30 +64,44 @@ class ScrumChatClient {
 
 	// ==================== WebSocket Messaging ====================
 	connectWebSocket(sprintId, messageCallback) {
-		const socket = new SockJS(`${this.baseURL}/chat`);
-		this.stompClient = Stomp.over(socket);
+		const client = new StompJs.Client({
+			brokerURL: `${this.baseURL}/chat`,
+			connectHeaders: { 'Authorization': `Bearer ${this.token}` },
+			debug: (str) => console.log(str),
+			reconnectDelay: 5000,
+			heartbeatIncoming: 4000,
+			heartbeatOutgoing: 4000,
+		});
 
-		this.stompClient.connect(
-			{ 'Authorization': `Bearer ${this.token}` },
-			() => {
-				this.stompClient.subscribe(`/topic/chat/${sprintId}`, messageCallback);
-			},
-			(error) => console.error('WebSocket error:', error)
-		);
+		client.onConnect = (frame) => {
+			client.subscribe(`/topic/chat/${sprintId}`, messageCallback);
+		};
+
+		client.onStompError = (frame) => {
+			console.error('Broker reported error: ' + frame.headers['message']);
+			console.error('Additional details: ' + frame.body);
+		};
+
+		client.onWebSocketClose = () => {
+			console.log('WebSocket closed');
+		}
+
+		this.stompClient = client;
+		client.activate();
 	}
 
 	sendMessage(sprintId, content) {
 		if (!this.stompClient) throw new Error('WebSocket not connected');
-		this.stompClient.send(
-			`/app/chat/${sprintId}`,
-			{},
-			JSON.stringify({ content })
-		);
+		this.stompClient.publish({
+			destination: `/app/chat/${sprintId}`,
+			body: JSON.stringify({ content })
+		});
 	}
 
 	disconnectWebSocket() {
 		if (this.stompClient) {
-			this.stompClient.disconnect();
+			this.stompClient.deactivate();
+			this.stompClient = null;
 		}
 	}
 
