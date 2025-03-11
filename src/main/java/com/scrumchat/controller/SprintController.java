@@ -3,6 +3,7 @@ package com.scrumchat.controller;
 import com.scrumchat.model.Sprint;
 import com.scrumchat.service.SprintService;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -22,5 +23,10 @@ public class SprintController {
 	@PostMapping("/{sprintId}/stop")
 	public void stopSprint(@PathVariable UUID sprintId) {
 		sprintService.stopSprint(sprintId);
+	}
+
+	@GetMapping("/teams/{teamId}/sprints")
+	public List<Sprint> getSprintsByTeamId(@PathVariable UUID teamId) {
+		return sprintService.getSprintsByTeamId(teamId);
 	}
 }

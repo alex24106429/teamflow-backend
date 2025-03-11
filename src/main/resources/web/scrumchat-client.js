@@ -50,6 +50,10 @@ class ScrumChatClient {
 		return this._authenticatedFetch(`/teams/${teamId}`);
 	}
 
+	async getAllTeams() {
+		return this._authenticatedFetch('/teams');
+	}
+
 	// ==================== Sprint Management ====================
 	async startSprint(teamId) {
 		console.log('Starting sprint with teamId:', teamId);
@@ -62,6 +66,10 @@ class ScrumChatClient {
 		return this._authenticatedFetch(`/sprints/${sprintId}/stop`, {
 			method: 'POST'
 		});
+	}
+
+	async getSprintsByTeamId(teamId) {
+		return this._authenticatedFetch(`/sprints/teams/${teamId}/sprints`);
 	}
 
 	// ==================== WebSocket Messaging ====================

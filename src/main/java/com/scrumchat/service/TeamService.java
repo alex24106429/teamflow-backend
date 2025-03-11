@@ -3,6 +3,7 @@ package com.scrumchat.service;
 import com.scrumchat.model.Team;
 import com.scrumchat.repository.TeamRepository;
 import org.springframework.stereotype.Service;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -19,5 +20,9 @@ public class TeamService {
 
 	public Team getTeamById(UUID teamId) {
 		return teamRepository.findById(teamId).orElseThrow();
+	}
+
+	public List<Team> getAllTeams() {
+		return teamRepository.findAll();
 	}
 }

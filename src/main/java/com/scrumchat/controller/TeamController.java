@@ -3,6 +3,7 @@ package com.scrumchat.controller;
 import com.scrumchat.model.Team;
 import com.scrumchat.service.TeamService;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -22,5 +23,10 @@ public class TeamController {
 	@GetMapping("/{teamId}")
 	public Team getTeam(@PathVariable UUID teamId) {
 		return teamService.getTeamById(teamId);
+	}
+
+	@GetMapping
+	public List<Team> getAllTeams() {
+		return teamService.getAllTeams();
 	}
 }

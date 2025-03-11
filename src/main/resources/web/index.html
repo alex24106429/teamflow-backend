@@ -1,13 +1,191 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScrumChat</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.1/bundles/stomp.umd.min.js"></script>
+    <script src="scrumchat-client.js"></script>
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <!-- Auth Modal -->
+    <div class="auth-modal" id="authModal">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h2>Welcome to ScrumChat</h2>
+                <p>A place for agile teams to collaborate</p>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Login</button>
+                <button class="auth-tab" data-tab="register">Register</button>
+            </div>
+            <div class="auth-form-container">
+                <form id="loginForm" class="auth-form active">
+                    <div class="form-group">
+                        <label for="loginUsername">USERNAME</label>
+                        <input type="text" id="loginUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">PASSWORD</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="auth-button">Login</button>
+                </form>
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="registerUsername">USERNAME</label>
+                        <input type="text" id="registerUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">PASSWORD</label>
+                        <input type="password" id="registerPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">CONFIRM PASSWORD</label>
+                        <input type="password" id="confirmPassword" required>
+                    </div>
+                    <button type="submit" class="auth-button">Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
-	<head>
-		<title>ScrumChat Dev</title>
-		<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.1/bundles/stomp.umd.min.js"></script>
-		<script src="scrumchat-client.js"></script>
-	</head>
-	<body>
-	</body>
+    <!-- Main App Interface -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- Teams sidebar (like Discord's server list) -->
+        <div class="teams-sidebar">
+            <div class="team-icon home-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <div class="teams-divider"></div>
+            <div class="teams-list" id="teamsList">
+                <!-- Teams will be added here -->
+            </div>
+            <div class="add-team-button">
+                <i class="fas fa-plus"></i>
+            </div>
+        </div>
 
+        <!-- Channels sidebar (like Discord's channel list) -->
+        <div class="channels-sidebar">
+            <div class="team-header" id="currentTeamHeader">
+                <h3>Team Name</h3>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            
+            <div class="channels-container">
+                <div class="channel-category">
+                    <div class="category-header">
+                        <i class="fas fa-chevron-down"></i>
+                        <span>SPRINT CHANNELS</span>
+                    </div>
+                    <div class="channels-list" id="sprintsList">
+                        <!-- Sprint channels will be added here -->
+                    </div>
+                </div>
+                
+                <div class="team-controls">
+                    <button id="startSprintBtn" class="action-button">
+                        <i class="fas fa-play"></i> Start New Sprint
+                    </button>
+                </div>
+            </div>
+            
+            <div class="user-controls">
+                <div class="current-user">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <span id="currentUsername">Username</span>
+                        <span class="user-status">Online</span>
+                    </div>
+                </div>
+                <div class="user-actions">
+                    <i class="fas fa-sign-out-alt" id="logoutBtn" title="Logout"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main chat area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <i class="fas fa-hashtag"></i>
+                    <h3 id="currentSprintName">sprint-name</h3>
+                </div>
+                <div class="chat-header-right">
+                    <i class="fas fa-bell"></i>
+                    <i class="fas fa-thumbtack"></i>
+                    <i class="fas fa-users"></i>
+                    <input type="text" placeholder="Search" class="search-input">
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be added here -->
+                <div class="welcome-message">
+                    <h2>Welcome to Sprint Chat!</h2>
+                    <p>This is the beginning of your sprint discussion.</p>
+                </div>
+            </div>
+            
+            <div class="message-input-container">
+                <div class="message-input-wrapper">
+                    <button class="upload-button">
+                        <i class="fas fa-plus-circle"></i>
+                    </button>
+                    <input type="text" id="messageInput" placeholder="Send a message..." class="message-input">
+                    <button class="emoji-button">
+                        <i class="far fa-smile"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Members sidebar (like Discord's members list) -->
+        <div class="members-sidebar">
+            <div class="members-header">
+                <h3>TEAM MEMBERS</h3>
+            </div>
+            <div class="members-groups">
+                <div class="member-group">
+                    <div class="member-group-header">ONLINE - <span id="onlineMembersCount">0</span></div>
+                    <div class="members-list" id="onlineMembersList">
+                        <!-- Online members will be added here -->
+                    </div>
+                </div>
+                <div class="member-group">
+                    <div class="member-group-header">OFFLINE - <span id="offlineMembersCount">0</span></div>
+                    <div class="members-list" id="offlineMembersList">
+                        <!-- Offline members will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="createTeamModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create a Team</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="createTeamForm">
+                    <div class="form-group">
+                        <label for="teamName">TEAM NAME</label>
+                        <input type="text" id="teamName" required>
+                    </div>
+                    <button type="submit" class="modal-button">Create Team</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
 </html>
