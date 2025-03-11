@@ -18,3 +18,6 @@ CREATE TABLE IF NOT EXISTS user_roles (
     role_id UUID REFERENCES role(id),
     PRIMARY KEY (user_id, role_id)
 );
+
+INSERT INTO role (id, authority) VALUES (random_uuid(), 'ROLE_USER') ON CONFLICT DO NOTHING;
+INSERT INTO role (id, authority) VALUES (random_uuid(), 'ROLE_ADMIN') ON CONFLICT DO NOTHING;
