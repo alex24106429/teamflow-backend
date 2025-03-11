@@ -52,9 +52,9 @@ class ScrumChatClient {
 
 	// ==================== Sprint Management ====================
 	async startSprint(teamId) {
-		return this._authenticatedFetch('/sprints/start', {
+		console.log('Starting sprint with teamId:', teamId);
+		return this._authenticatedFetch(`/sprints/start?teamId=${teamId}`, {
 			method: 'POST',
-			body: JSON.stringify({ teamId })
 		});
 	}
 
@@ -146,7 +146,7 @@ const client = new ScrumChatClient();
 // const team = await client.createTeam({name: 'Dev Team'});
 
 // // Start sprint
-// const sprint = await client.startSprint(team.id);
+// // const sprint = await client.startSprint(team.id);
 
 // // Connect to chat
 // client.connectWebSocket(sprint.id, (message) => {
