@@ -72,12 +72,17 @@ class ScrumChatClient {
 		return this._authenticatedFetch(`/sprints/teams/${teamId}/sprints`);
 	}
 
+	async getMessages(sprintId) {
+		const response = await fetch(`/api/sprints/${sprintId}/messages`);
+		return response.json();
+	}
+
 	// ==================== WebSocket Messaging ====================
 	connectWebSocket(sprintId, messageCallback) {
 		console.log('WebSocket token:', this.token);
 		const socket = new SockJS(`${this.baseURL}/chat`);
 		const client = StompJs.Stomp.over(socket)
-		
+
 		client.configure({
 			connectHeaders: { 'Authorization': `Bearer ${this.token}` },
 			debug: (str) => console.log(str),

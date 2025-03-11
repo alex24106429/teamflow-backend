@@ -1,5 +1,3 @@
-// Assuming client.js contains the ScrumChatClient class definition
-
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const authModal = document.getElementById('authModal');
@@ -287,24 +285,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Clear chat messages
-        chatMessages.innerHTML = `
-            <div class="welcome-message">
-                <h2>Welcome to Sprint ${sprint.name}!</h2>
-                <p>This is the beginning of your sprint discussion.</p>
-            </div>
-        `;
+        // Clear chat messages and load history
+        chatMessages.innerHTML = '';
         
-        // Connect to WebSocket for this sprint
-        client.connectWebSocket(sprint.id, (message) => {
-            displayMessage(JSON.parse(message.body));
-        });
+        try {
+            // Load historical messages
+            const messages = await client.getMessages(sprint.id);
+            messages.forEach(message => displayMessage(message));
+            
+            // Connect to WebSocket for real-time updates
+            client.connectWebSocket(sprint.id, (message) => {
+                displayMessage(JSON.parse(message.body));
+            });
+        } catch (error) {
+            console.error('Failed to load messages:', error);
+            chatMessages.innerHTML = `
+                <div class="error-message">
+                    Failed to load messages: ${error.message}
+                </div>
+            `;
+        }
     };
 
-    // Display a chat message
+    // Display a chat message (updated to handle historical data)
     const displayMessage = (message) => {
         const messageGroup = document.createElement('div');
         messageGroup.className = 'message-group';
+        
+        // Format timestamp from message data
+        const messageDate = new Date(message.createdAt);
+        const formattedDate = messageDate.toLocaleDateString();
+        const formattedTime = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
         messageGroup.innerHTML = `
             <div class="message-avatar">
@@ -312,8 +323,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="message-content">
                 <div class="message-header">
-                    <span class="message-author">${message.sender || 'User'}</span>
-                    <span class="message-timestamp">${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</span>
+                    <span class="message-author">${message.sender?.username || 'Unknown User'}</span>
+                    <span class="message-timestamp">${formattedDate} ${formattedTime}</span>
                 </div>
                 <div class="message-text">${message.content}</div>
             </div>
