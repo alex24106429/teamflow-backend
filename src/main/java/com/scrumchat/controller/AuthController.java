@@ -16,7 +16,7 @@ public class AuthController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthController(JwtTokenProvider jwtTokenProvider, 
+    public AuthController(JwtTokenProvider jwtTokenProvider,
                          UserService userService,
                          AuthenticationManager authenticationManager) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -25,7 +25,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest loginRequest, Authentication authentication) {
+    public String login(@RequestBody LoginRequest loginRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                loginRequest.getUsername(),
+                loginRequest.getPassword()
+            )
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
         return jwtTokenProvider.generateToken(authentication);
     }
 
@@ -35,14 +42,14 @@ public class AuthController {
             registerRequest.getUsername(),
             registerRequest.getPassword()
         );
-        
+
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 registerRequest.getUsername(),
                 registerRequest.getPassword()
             )
         );
-        
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return jwtTokenProvider.generateToken(authentication);
     }
@@ -50,7 +57,7 @@ public class AuthController {
     static class LoginRequest {
         private String username;
         private String password;
-        
+
         public String getUsername() { return username; }
         public void setUsername(String username) { this.username = username; }
         public String getPassword() { return password; }
@@ -60,7 +67,7 @@ public class AuthController {
     static class RegisterRequest {
         private String username;
         private String password;
-        
+
         public String getUsername() { return username; }
         public void setUsername(String username) { this.username = username; }
         public String getPassword() { return password; }
