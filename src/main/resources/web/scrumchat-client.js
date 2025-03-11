@@ -18,6 +18,7 @@ class ScrumChatClient {
 		const token = await response.text();
 		this.token = token;
 		localStorage.setItem('scrumchat_token', token);
+		console.log('Login successful, token stored:', token);
 		return token;
 	}
 
@@ -33,6 +34,7 @@ class ScrumChatClient {
 		const token = await response.text();
 		this.token = token;
 		localStorage.setItem('scrumchat_token', token);
+		console.log('Registration successful, token stored:', token);
 		return token;
 	}
 
@@ -64,8 +66,11 @@ class ScrumChatClient {
 
 	// ==================== WebSocket Messaging ====================
 	connectWebSocket(sprintId, messageCallback) {
-		const client = new StompJs.Client({
-			brokerURL: `${this.baseURL}/chat`,
+		console.log('WebSocket token:', this.token);
+		const socket = new SockJS(`${this.baseURL}/chat`); // Use SockJS
+		const client = StompJs.Stomp.over(socket); // Use Stomp.over(SockJS)
+		
+		client.configure({ // Use configure instead of passing connectHeaders to Client constructor
 			connectHeaders: { 'Authorization': `Bearer ${this.token}` },
 			debug: (str) => console.log(str),
 			reconnectDelay: 5000,
@@ -133,20 +138,20 @@ class ScrumChatClient {
 }
 
 const client = new ScrumChatClient();
- 
+
 // // Login
 // await client.login('username', 'password');
- 
+
 // // Create team
 // const team = await client.createTeam({name: 'Dev Team'});
- 
+
 // // Start sprint
 // const sprint = await client.startSprint(team.id);
- 
+
 // // Connect to chat
 // client.connectWebSocket(sprint.id, (message) => {
 //   console.log('New message:', JSON.parse(message.body));
 // });
- 
+
 // // Send message
 // client.sendMessage(sprint.id, 'Hello team!');

@@ -29,7 +29,7 @@ public class SecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeHttpRequests()
-            .requestMatchers("/login", "/register", "/web/**", "/h2-console/**").permitAll() // Added /h2-console/** to permitAll
+            .requestMatchers("/login", "/register", "/web/**", "/h2-console/**", "/chat/**").permitAll() // ADDED /chat/** to permitAll
             .anyRequest().authenticated()
             .and()
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
