@@ -7,6 +7,7 @@ import com.scrumchat.repository.TeamRepository; // Import TeamRepository
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,4 +37,15 @@ public class SprintService {
 	public List<Sprint> getSprintsByTeamId(UUID teamId) {
 		return sprintRepository.findByTeam_Id(teamId); // Changed to findByTeam_Id
 	}
+
+    public Optional<Sprint> getSprintById(String sprintId) {
+        try {
+            UUID uuid = UUID.fromString(sprintId);
+            return sprintRepository.findById(uuid);
+        } catch (IllegalArgumentException e) {
+            // Log the error or handle it as needed
+            System.err.println("Invalid UUID format: " + sprintId);
+            return Optional.empty();
+        }
+    }
 }
