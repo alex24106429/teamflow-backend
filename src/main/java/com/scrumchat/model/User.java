@@ -5,17 +5,17 @@ import java.util.Collection;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users") // Corrected table name
+@Table(name = "users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID) // Corrected ID generation
-    private UUID id; // Corrected ID type
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     private String username;
     private String password;
-    private boolean enabled = true; // Added missing field
-    private boolean accountNonExpired = true; // Added missing field
-    private boolean credentialsNonExpired = true; // Added missing field
-    private boolean accountNonLocked = true; // Added missing field
+    private boolean enabled = true;
+    private boolean accountNonExpired = true;
+    private boolean credentialsNonExpired = true;
+    private boolean accountNonLocked = true;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

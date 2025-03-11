@@ -3,7 +3,7 @@ package com.scrumchat.controller;
 import com.scrumchat.model.Message;
 import com.scrumchat.model.User;
 import com.scrumchat.model.Sprint;
-import com.scrumchat.repository.UserRepository; // Import UserRepository
+import com.scrumchat.repository.UserRepository;
 import com.scrumchat.service.MessageService;
 import com.scrumchat.service.SprintService;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -19,12 +19,12 @@ public class MessageController {
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageService messageService;
     private final SprintService sprintService;
-    private final UserRepository userRepository; // Inject UserRepository
+    private final UserRepository userRepository;
 
     public MessageController(SimpMessagingTemplate messagingTemplate,
                             MessageService messageService,
                             SprintService sprintService,
-                            UserRepository userRepository) { // Add UserRepository to constructor
+                            UserRepository userRepository) {
         this.messagingTemplate = messagingTemplate;
         this.messageService = messageService;
         this.sprintService = sprintService;

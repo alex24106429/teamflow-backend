@@ -5,15 +5,15 @@ import lombok.Data;
 import java.util.UUID;
 
 @Entity
-@Table(name = "team") // Added table name annotation
+@Table(name = "team")
 @Data
 public class Team {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String name;
-    @Column(name = "current_sprint_id") // Added column name annotation for case sensitivity
-    private UUID currentSprintId; // Changed field name to currentSprintId
+    @Column(name = "current_sprint_id")
+    private UUID currentSprintId;
 
     // Add constructor that accepts a UUID
     public Team(UUID id) {

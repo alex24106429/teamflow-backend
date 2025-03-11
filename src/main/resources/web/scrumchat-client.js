@@ -75,10 +75,10 @@ class ScrumChatClient {
 	// ==================== WebSocket Messaging ====================
 	connectWebSocket(sprintId, messageCallback) {
 		console.log('WebSocket token:', this.token);
-		const socket = new SockJS(`${this.baseURL}/chat`); // Use SockJS
-		const client = StompJs.Stomp.over(socket); // Use Stomp.over(SockJS)
+		const socket = new SockJS(`${this.baseURL}/chat`);
+		const client = StompJs.Stomp.over(socket)
 		
-		client.configure({ // Use configure instead of passing connectHeaders to Client constructor
+		client.configure({
 			connectHeaders: { 'Authorization': `Bearer ${this.token}` },
 			debug: (str) => console.log(str),
 			reconnectDelay: 5000,
