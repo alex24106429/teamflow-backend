@@ -2,7 +2,6 @@ package com.teamflow.model;
 
 import com.teamflow.converter.MessageContentConverter;
 import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -36,7 +35,7 @@ public class Message {
     @JoinColumn(name = "task_id", referencedColumnName = "id")
     private Task task;
 
-    @CreatedDate
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     // Getters and setters

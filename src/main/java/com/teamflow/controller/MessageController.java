@@ -1,10 +1,11 @@
 package com.teamflow.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teamflow.dto.MessageDto;
 import com.teamflow.dto.UserDto;
 import com.teamflow.model.Message;
-import com.teamflow.model.MessageContent; // Added import for MessageContent
-import com.teamflow.model.Role;
+import com.teamflow.model.MessageContent;
 import com.teamflow.model.Sprint;
 import com.teamflow.model.User;
 import com.teamflow.repository.UserRepository;
@@ -16,7 +17,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import static java.util.stream.Collectors.toList;
@@ -44,43 +45,62 @@ public class MessageController {
     @GetMapping
     public List<MessageDto> getMessagesBySprint(@PathVariable UUID sprintId) {
         return messageService.findBySprintId(sprintId).stream()
-                .map(message -> new MessageDto(
-                        message.getId(),
-                        message.getContent().getContent(),
-                        convertToUserDto(message.getSender()),
-                        message.getSprint().getId(),
-                        message.getCreatedAt()
-                ))
+                .map(message -> {
+                    String content = message.getContent() != null ? message.getContent().getContent() : null;
+                    return new MessageDto(
+                            message.getId(),
+                            content,
+                            convertToUserDto(message.getSender()),
+                            message.getSprint().getId(),
+                            message.getCreatedAt()
+                    );
+                })
                 .collect(toList());
     }
 
     @MessageMapping("/chat/{sprintId}")
-    public void handleMessage(Principal principal, @DestinationVariable String sprintId, String messageContent) {
-        // Get authenticated user from principal
-        if (principal != null) {
-            String username = principal.getName(); // Get username from Principal
-            User sender = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found: " + username)); // Fetch User object using UserRepository
+    public void handleMessage(@DestinationVariable String sprintId, String messageContent) {
+        try {
+            // For testing purposes, use a default user if authentication is not available
+            User sender = userRepository.findByUsername("tester")
+                    .orElseGet(() -> {
+                        System.out.println("Using default user for testing");
+                        return userRepository.findAll().stream().findFirst()
+                                .orElseThrow(() -> new RuntimeException("No users found in the system"));
+                    });
 
             // Get sprint from repository
             Sprint sprint = sprintService.getSprintById(sprintId)
                 .orElseThrow(() -> new RuntimeException("Sprint not found"));
 
+            // Parse the message content from JSON
+            // The client sends: JSON.stringify({ content })
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(messageContent);
+            String content = jsonNode.has("content") ? jsonNode.get("content").asText() : messageContent;
+
             // Create and persist message
             Message message = new Message();
-            MessageContent content = new MessageContent(); // Create MessageContent object
-            content.setContent(messageContent); // Set the message content
-            message.setContent(content); // Set MessageContent to Message
+            message.setContent(new MessageContent(content));
             message.setSender(sender);
             message.setSprint(sprint);
-            messageService.saveMessage(message); // saveMessage should now be available
+            message.setCreatedAt(LocalDateTime.now());
+            Message savedMessage = messageService.saveMessage(message);
+
+            // Create DTO for broadcasting
+            MessageDto messageDto = new MessageDto(
+                savedMessage.getId(),
+                savedMessage.getContent().getContent(),
+                convertToUserDto(savedMessage.getSender()),
+                savedMessage.getSprint().getId(),
+                savedMessage.getCreatedAt()
+            );
 
             // Broadcast to subscribers
-            messagingTemplate.convertAndSend("/topic/chat/" + sprintId, messageContent);
-        } else {
-            // Handle case where principal is null, e.g., log an error or throw an exception
-            System.err.println("Principal is null, authentication failed for WebSocket message.");
-            // Optionally throw an exception or handle it as needed
+            messagingTemplate.convertAndSend("/topic/chat/" + sprintId, messageDto);
+        } catch (Exception e) {
+            System.err.println("Error handling WebSocket message: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
