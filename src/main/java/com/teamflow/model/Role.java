@@ -14,7 +14,7 @@ public class Role {
     private RoleName name;
 
     public enum RoleName {
-        ROLE_USER, ROLE_ADMIN, ROLE_SCRUM_MASTER
+        ROLE_USER, ROLE_ADMIN, ROLE_SCRUM_MASTER, ROLE_PRODUCT_OWNER, ROLE_DEVELOPER
     }
 
     public UUID getId() { return id; }
