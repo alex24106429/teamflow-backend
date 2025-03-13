@@ -1,5 +1,6 @@
 package com.scrumchat.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.List;
@@ -16,6 +17,7 @@ public class Team {
     @Column(name = "current_sprint_id")
     private UUID currentSprintId;
 
+    @JsonManagedReference // Added JsonManagedReference
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Epic> epics;
 

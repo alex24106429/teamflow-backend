@@ -77,6 +77,94 @@ class ScrumChatClient {
 		return response.json();
 	}
 
+	// ==================== Epic Management ====================
+	async createEpic(teamId, epic) {
+		return this._authenticatedFetch(`/epics?teamId=${teamId}`, {
+			method: 'POST',
+			body: JSON.stringify(epic)
+		});
+	}
+
+	async getEpicById(epicId) {
+		return this._authenticatedFetch(`/epics/${epicId}`);
+	}
+
+	async getAllEpicsByTeamId(teamId) {
+		return this._authenticatedFetch(`/epics?teamId=${teamId}`);
+	}
+
+	async updateEpic(epicId, epic) {
+		return this._authenticatedFetch(`/epics/${epicId}`, {
+			method: 'PUT',
+			body: JSON.stringify(epic)
+		});
+	}
+
+	async deleteEpic(epicId) {
+		return this._authenticatedFetch(`/epics/${epicId}`, {
+			method: 'DELETE'
+		});
+	}
+
+	// ==================== User Story Management ====================
+	async createUserStory(epicId, userStory) {
+		return this._authenticatedFetch(`/user-stories?epicId=${epicId}`, {
+			method: 'POST',
+			body: JSON.stringify(userStory)
+		});
+	}
+
+	async getUserStoryById(userStoryId) {
+		return this._authenticatedFetch(`/user-stories/${userStoryId}`);
+	}
+
+	async getAllUserStoriesByEpicId(epicId) {
+		return this._authenticatedFetch(`/user-stories?epicId=${epicId}`);
+	}
+
+	async updateUserStory(userStoryId, userStory) {
+		return this._authenticatedFetch(`/user-stories/${userStoryId}`, {
+			method: 'PUT',
+			body: JSON.stringify(userStory)
+		});
+	}
+
+	async deleteUserStory(userStoryId) {
+		return this._authenticatedFetch(`/user-stories/${userStoryId}`, {
+			method: 'DELETE'
+		});
+	}
+
+	// ==================== Task Management ====================
+	async createTask(userStoryId, task) {
+		return this._authenticatedFetch(`/tasks?userStoryId=${userStoryId}`, {
+			method: 'POST',
+			body: JSON.stringify(task)
+		});
+	}
+
+	async getTaskById(taskId) {
+		return this._authenticatedFetch(`/tasks/${taskId}`);
+	}
+
+	async getAllTasksByUserStoryId(userStoryId) {
+		return this._authenticatedFetch(`/tasks?userStoryId=${userStoryId}`);
+	}
+
+	async updateTask(taskId, task) {
+		return this._authenticatedFetch(`/tasks/${taskId}`, {
+			method: 'PUT',
+			body: JSON.stringify(task)
+		});
+	}
+
+	async deleteTask(taskId) {
+		return this._authenticatedFetch(`/tasks/${taskId}`, {
+			method: 'DELETE'
+		});
+	}
+
+
 	// ==================== WebSocket Messaging ====================
 	connectWebSocket(sprintId, messageCallback) {
 		console.log('WebSocket token:', this.token);
@@ -138,6 +226,11 @@ class ScrumChatClient {
 		if (!response.ok) {
 			const error = await response.text();
 			throw new Error(error);
+		}
+
+		// Check if the response is 204 No Content
+		if (response.status === 204) {
+			return null; // Return null for No Content responses
 		}
 
 		return response.json();

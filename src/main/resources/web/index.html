@@ -81,10 +81,40 @@
                 <div class="channel-category">
                     <div class="category-header">
                         <i class="fas fa-chevron-down"></i>
+                        <span>EPICS</span>
+                        <button class="add-channel-button" id="addEpicButton">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="channels-list" id="epicsList">
+                        <!-- Epics will be added here -->
+                    </div>
+                </div>
+                <div class="channel-category">
+                    <div class="category-header">
+                        <i class="fas fa-chevron-down"></i>
                         <span>SPRINT CHANNELS</span>
                     </div>
                     <div class="channels-list" id="sprintsList">
                         <!-- Sprint channels will be added here -->
+                    </div>
+                </div>
+                <div class="channel-category">
+                    <div class="category-header">
+                        <i class="fas fa-chevron-down"></i>
+                        <span>USER STORIES</span>
+                    </div>
+                    <div class="channels-list" id="userStoriesList">
+                        <!-- User Stories will be added here -->
+                    </div>
+                </div>
+                <div class="channel-category">
+                    <div class="category-header">
+                        <i class="fas fa-chevron-down"></i>
+                        <span>TASKS</span>
+                    </div>
+                    <div class="channels-list" id="tasksList">
+                        <!-- Tasks will be added here -->
                     </div>
                 </div>
                 
@@ -182,6 +212,89 @@
                         <input type="text" id="teamName" required>
                     </div>
                     <button type="submit" class="modal-button">Create Team</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="createEpicModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Epic</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="createEpicForm">
+                    <div class="form-group">
+                        <label for="epicName">EPIC NAME</label>
+                        <input type="text" id="epicName" required>
+                    </div>
+                    <button type="submit" class="modal-button">Create Epic</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editEpicModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Epic</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editEpicForm">
+                    <div class="form-group">
+                        <label for="editEpicName">EPIC NAME</label>
+                        <input type="text" id="editEpicName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEpicDescription">EPIC DESCRIPTION</label>
+                        <textarea id="editEpicDescription"></textarea>
+                    </div>
+                    <button type="submit" class="modal-button">Update Epic</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="createUserStoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create User Story</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="createUserStoryForm">
+                    <div class="form-group">
+                        <label for="userStoryName">USER STORY NAME</label>
+                        <input type="text" id="userStoryName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userStoryDescription">USER STORY DESCRIPTION</label>
+                        <textarea id="userStoryDescription"></textarea>
+                    </div>
+                    <button type="submit" class="modal-button">Create User Story</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="createTaskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Task</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="createTaskForm">
+                    <div class="form-group">
+                        <label for="taskName">TASK NAME</label>
+                        <input type="text" id="taskName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDescription">TASK DESCRIPTION</label>
+                        <textarea id="taskDescription"></textarea>
+                    </div>
+                    <button type="submit" class="modal-button">Create Task</button>
                 </form>
             </div>
         </div>

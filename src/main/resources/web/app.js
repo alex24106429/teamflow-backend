@@ -12,12 +12,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalBtns = document.querySelectorAll('.close-modal');
     const teamsList = document.getElementById('teamsList');
     const sprintsList = document.getElementById('sprintsList');
+    const epicsList = document.getElementById('epicsList'); // New: Epics list
     const startSprintBtn = document.getElementById('startSprintBtn');
     const messageInput = document.getElementById('messageInput');
     const chatMessages = document.getElementById('chatMessages');
     const currentTeamHeader = document.getElementById('currentTeamHeader');
     const currentSprintName = document.getElementById('currentSprintName');
     const currentUsername = document.getElementById('currentUsername');
+    const createEpicModal = document.getElementById('createEpicModal'); // New: Create Epic Modal
+    const createEpicForm = document.getElementById('createEpicForm'); // New: Create Epic Form
+    const addEpicButton = document.getElementById('addEpicButton'); // New: Add Epic Button
+    const editEpicModal = document.getElementById('editEpicModal'); // New: Edit Epic Modal
+    const editEpicForm = document.getElementById('editEpicForm'); // New: Edit Epic Form
+    const editEpicNameInput = document.getElementById('editEpicName'); // New: Edit Epic Name Input
+    const editEpicDescriptionInput = document.getElementById('editEpicDescription'); // New: Edit Epic Description Input
+    const userStoriesList = document.getElementById('userStoriesList'); // New: User Stories list
+    const tasksList = document.getElementById('tasksList'); // New: Tasks list
+    const createUserStoryModal = document.getElementById('createUserStoryModal'); // New: Create User Story Modal
+    const createUserStoryForm = document.getElementById('createUserStoryForm'); // New: Create User Story Form
+    const createTaskModal = document.getElementById('createTaskModal'); // New: Create Task Modal
+    const createTaskForm = document.getElementById('createTaskForm'); // New: Create Task Form
 
     // State
     let currentUser = null;
@@ -25,6 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSprint = null;
     let teams = [];
     let sprints = [];
+    let epics = []; // New: Epics state
+    let selectedEpic = null; // New: Selected Epic
+    let userStories = []; // New: User Stories state
+    let tasks = []; // New: Tasks state
 
     // Initialize client
     const client = new ScrumChatClient();
@@ -124,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSprint = null;
         teams = [];
         sprints = [];
+        epics = []; // Clear epics on logout
         showAuth();
     });
 
@@ -208,6 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Load sprints for this team
         await loadSprints(team.id);
+        // Load epics for this team
+        await loadEpics(team.id); // New: Load epics when team is selected
     };
 
     // Load sprints for a team
@@ -305,6 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         }
+        // Load user stories for this sprint
+        await loadUserStories(sprint);
     };
 
     // Display a chat message (updated to handle historical data)
@@ -361,6 +384,163 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Load epics for a team
+    const loadEpics = async (teamId) => {
+        try {
+            const fetchedEpics = await client.getAllEpicsByTeamId(teamId);
+            epics = fetchedEpics;
+            renderEpics();
+        } catch (error) {
+            console.error('Failed to load epics', error);
+        }
+    };
+
+    // Render epics in sidebar
+    const renderEpics = () => {
+        epicsList.innerHTML = '';
+        
+        if (epics.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.textContent = 'No epics yet';
+            epicsList.appendChild(emptyState);
+            return;
+        }
+        
+        epics.forEach(epic => {
+            const epicItem = document.createElement('div');
+            epicItem.className = 'channel-item'; // Reusing channel-item style
+            epicItem.innerHTML = `<i class="fas fa-bookmark"></i> <span>${epic.name}</span>`; // Using bookmark icon for epics
+
+            epicItem.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                selectedEpic = epic; // Store the selected epic
+
+                const contextMenu = document.createElement('div');
+                contextMenu.className = 'context-menu';
+                contextMenu.style.position = 'absolute';
+                contextMenu.style.left = event.clientX + 'px';
+                contextMenu.style.top = event.clientY + 'px';
+                contextMenu.innerHTML = `
+                    <div class="context-menu-item" id="editEpic">Edit</div>
+                    <div class="context-menu-item" id="deleteEpic">Delete</div>
+                `;
+                document.body.appendChild(contextMenu);
+
+                // Event listeners for context menu items
+                document.getElementById('editEpic').addEventListener('click', () => {
+                    showEditEpicModal(epic);
+                    contextMenu.remove();
+                });
+                document.getElementById('deleteEpic').addEventListener('click', () => {
+                    deleteEpic(epic);
+                    contextMenu.remove();
+                });
+
+                // Close context menu on outside click
+                document.addEventListener('click', function outsideClickListener(event) {
+                    if (!contextMenu.contains(event.target)) {
+                        contextMenu.remove();
+                        document.removeEventListener('click', outsideClickListener);
+                    }
+                });
+            });
+            
+            epicsList.appendChild(epicItem);
+        });
+    };
+
+    // Show create epic modal
+    addEpicButton.addEventListener('click', () => {
+        createEpicModal.style.display = 'flex';
+    });
+
+    // Handle epic creation
+    createEpicForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const epicName = document.getElementById('epicName').value;
+        if (!currentTeam) return;
+
+        try {
+            const epic = await client.createEpic(currentTeam.id, { name: epicName });
+            epics.push(epic);
+            renderEpics();
+            createEpicModal.style.display = 'none';
+        } catch (error) {
+            alert('Failed to create epic: ' + error.message);
+        }
+    });
+
+    // Show edit epic modal
+    const showEditEpicModal = (epic) => {
+        editEpicNameInput.value = epic.name;
+        editEpicDescriptionInput.value = epic.description || '';
+        editEpicModal.style.display = 'flex';
+    };
+
+    // Handle epic update
+    editEpicForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!selectedEpic) return;
+
+        const epicName = editEpicNameInput.value;
+        const epicDescription = editEpicDescriptionInput.value;
+
+        try {
+            const updatedEpic = await client.updateEpic(selectedEpic.id, { name: epicName, description: epicDescription });
+            // Update the epic in the epics array
+            epics = epics.map(epic => epic.id === selectedEpic.id ? updatedEpic : epic);
+            renderEpics();
+            editEpicModal.style.display = 'none';
+        } catch (error) {
+            alert('Failed to update epic: ' + error.message);
+        }
+    });
+
+    // Handle epic deletion
+    const deleteEpic = async (epic) => {
+        if (!confirm('Are you sure you want to delete this epic?')) return;
+
+        try {
+            await client.deleteEpic(epic.id);
+            epics = epics.filter(e => e.id !== epic.id);
+            renderEpics();
+        } catch (error) {
+            alert('Failed to delete epic: ' + error.message);
+        }
+    };
+
+    // Load user stories for a sprint
+    const loadUserStories = async (sprint) => {
+        try {
+            // Assuming sprint object has epicId
+            const userStories = await client.getAllUserStoriesByEpicId(sprint.epicId);
+            renderUserStories(userStories);
+        } catch (error) {
+            console.error('Failed to load user stories', error);
+        }
+    };
+
+    // Render user stories in sidebar
+    const renderUserStories = (userStories) => {
+        userStoriesList.innerHTML = '';
+
+        if (userStories.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.textContent = 'No user stories yet';
+            userStoriesList.appendChild(emptyState);
+            return;
+        }
+
+        userStories.forEach(userStory => {
+            const userStoryItem = document.createElement('div');
+            userStoryItem.className = 'channel-item';
+            userStoryItem.innerHTML = `<i class="fas fa-list"></i> <span>${userStory.name}</span>`;
+            userStoriesList.appendChild(userStoryItem);
+        });
+    };
 
     // Initialize the app
     init();

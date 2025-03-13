@@ -1,5 +1,6 @@
 package com.scrumchat.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.util.List;
 import java.util.UUID;
@@ -18,21 +19,16 @@ public class UserStory {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    private UserStoryStatus status;
+    @Column // Added status field
+    private String status;
 
     @ManyToOne
     @JoinColumn(name = "epic_id", nullable = false)
+    @JsonBackReference // Added JsonBackReference
     private Epic epic;
 
     @OneToMany(mappedBy = "userStory", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks;
-
-    public enum UserStoryStatus {
-        TODO,
-        IN_PROGRESS,
-        DONE
-    }
 
     public UUID getId() {
         return id;
@@ -58,11 +54,11 @@ public class UserStory {
         this.description = description;
     }
 
-    public UserStoryStatus getStatus() {
+    public String getStatus() { // Added getStatus method
         return status;
     }
 
-    public void setStatus(UserStoryStatus status) {
+    public void setStatus(String status) { // Added setStatus method
         this.status = status;
     }
 

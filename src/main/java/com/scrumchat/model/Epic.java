@@ -1,5 +1,7 @@
 package com.scrumchat.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
 import java.util.UUID;
@@ -20,8 +22,10 @@ public class Epic {
 
     @ManyToOne
     @JoinColumn(name = "team_id", nullable = false)
+    @JsonBackReference // Added JsonBackReference
     private Team team;
 
+    @JsonManagedReference // Added JsonManagedReference
     @OneToMany(mappedBy = "epic", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserStory> userStories;
 
