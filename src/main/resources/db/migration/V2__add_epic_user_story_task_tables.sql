@@ -22,6 +22,10 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 
 ALTER TABLE message
-ADD COLUMN epic_id UUID REFERENCES epics(id),
-ADD COLUMN user_story_id UUID REFERENCES user_stories(id),
+ADD COLUMN epic_id UUID REFERENCES epics(id);
+
+ALTER TABLE message
+ADD COLUMN user_story_id UUID REFERENCES user_stories(id);
+
+ALTER TABLE message
 ADD COLUMN task_id UUID REFERENCES tasks(id);
