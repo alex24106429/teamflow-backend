@@ -141,37 +141,125 @@
             </div>
         </div>
 
-        <!-- Main chat area -->
-        <div class="chat-area">
-            <div class="chat-header">
-                <div class="chat-header-left">
-                    <i class="fas fa-hashtag"></i>
-                    <h3 id="currentSprintName">sprint-name</h3>
+        <!-- Main content area - will switch between home view and chat view -->
+        <div class="main-content-area">
+            <!-- Home View -->
+            <div class="home-view" id="homeView">
+                <div class="home-header">
+                    <h2>Welcome to TeamFlow</h2>
+                    <p>Your Agile Team Collaboration Platform</p>
                 </div>
-                <div class="chat-header-right">
-                    <i class="fas fa-thumbtack"></i>
-                    <i class="fas fa-users"></i>
-                    <input type="text" placeholder="Search" class="search-input">
+                
+                <div class="home-content">
+                    <div class="home-section">
+                        <div class="home-section-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="home-section-content">
+                            <h3>Your Teams</h3>
+                            <div id="homeTeamsList" class="home-list">
+                                <!-- Teams will be listed here -->
+                                <div class="empty-home-state" id="emptyTeamsState">
+                                    <p>You don't have any teams yet.</p>
+                                    <button class="action-button" id="homeCreateTeamBtn">
+                                        <i class="fas fa-plus"></i> Create Your First Team
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="home-section">
+                        <div class="home-section-icon">
+                            <i class="fas fa-bookmark"></i>
+                        </div>
+                        <div class="home-section-content">
+                            <h3>Recent Epics</h3>
+                            <div id="homeRecentEpics" class="home-list">
+                                <!-- Recent epics will be listed here -->
+                                <div class="empty-home-state">
+                                    <p>No recent epics to display.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="home-section">
+                        <div class="home-section-icon">
+                            <i class="fas fa-running"></i>
+                        </div>
+                        <div class="home-section-content">
+                            <h3>Active Sprints</h3>
+                            <div id="homeActiveSprints" class="home-list">
+                                <!-- Active sprints will be listed here -->
+                                <div class="empty-home-state">
+                                    <p>No active sprints to display.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="home-guide">
+                        <h3>Getting Started with TeamFlow</h3>
+                        <div class="guide-steps">
+                            <div class="guide-step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h4>Create a Team</h4>
+                                    <p>Start by creating a team for your project. Click the + button in the left sidebar.</p>
+                                </div>
+                            </div>
+                            <div class="guide-step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h4>Create Epics</h4>
+                                    <p>Add epics to organize your work into large features or components.</p>
+                                </div>
+                            </div>
+                            <div class="guide-step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h4>Start a Sprint</h4>
+                                    <p>Begin your first sprint to track progress and collaborate with your team.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="chat-messages" id="chatMessages">
-                <!-- Messages will be added here -->
-                <div class="welcome-message">
-                    <h2>Welcome to Sprint Chat!</h2>
-                    <p>This is the beginning of your sprint discussion.</p>
+            <!-- Chat View -->
+            <div class="chat-area" id="chatView">
+                <div class="chat-header">
+                    <div class="chat-header-left">
+                        <i class="fas fa-hashtag"></i>
+                        <h3 id="currentSprintName">sprint-name</h3>
+                    </div>
+                    <div class="chat-header-right">
+                        <i class="fas fa-thumbtack"></i>
+                        <i class="fas fa-users"></i>
+                        <input type="text" placeholder="Search" class="search-input">
+                    </div>
                 </div>
-            </div>
-            
-            <div class="message-input-container">
-                <div class="message-input-wrapper">
-                    <button class="upload-button">
-                        <i class="fas fa-plus-circle"></i>
-                    </button>
-                    <input type="text" id="messageInput" placeholder="Send a message..." class="message-input">
-                    <button class="emoji-button">
-                        <i class="far fa-smile"></i>
-                    </button>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be added here -->
+                    <div class="welcome-message">
+                        <h2>Welcome to Sprint Chat!</h2>
+                        <p>This is the beginning of your sprint discussion.</p>
+                    </div>
+                </div>
+                
+                <div class="message-input-container">
+                    <div class="message-input-wrapper">
+                        <button class="upload-button">
+                            <i class="fas fa-plus-circle"></i>
+                        </button>
+                        <input type="text" id="messageInput" placeholder="Send a message..." class="message-input">
+                        <button class="emoji-button">
+                            <i class="far fa-smile"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -295,6 +383,24 @@
                         <textarea id="taskDescription"></textarea>
                     </div>
                     <button type="submit" class="modal-button">Create Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="startSprintModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Start New Sprint</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="startSprintForm">
+                    <div class="form-group">
+                        <label for="sprintName">SPRINT NAME</label>
+                        <input type="text" id="sprintName" placeholder="e.g., Sprint 1" required>
+                    </div>
+                    <button type="submit" class="modal-button">Start Sprint</button>
                 </form>
             </div>
         </div>

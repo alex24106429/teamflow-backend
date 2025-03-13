@@ -32,6 +32,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const createUserStoryForm = document.getElementById('createUserStoryForm'); // New: Create User Story Form
     const createTaskModal = document.getElementById('createTaskModal'); // New: Create Task Modal
     const createTaskForm = document.getElementById('createTaskForm'); // New: Create Task Form
+    
+    // Home view elements
+    const homeView = document.getElementById('homeView');
+    const chatView = document.getElementById('chatView');
+    const homeIcon = document.querySelector('.home-icon');
+    const homeTeamsList = document.getElementById('homeTeamsList');
+    const homeRecentEpics = document.getElementById('homeRecentEpics');
+    const homeActiveSprints = document.getElementById('homeActiveSprints');
+    const homeCreateTeamBtn = document.getElementById('homeCreateTeamBtn');
+    const emptyTeamsState = document.getElementById('emptyTeamsState');
 
     // State
     let currentUser = null;
@@ -43,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedEpic = null; // New: Selected Epic
     let userStories = []; // New: User Stories state
     let tasks = []; // New: Tasks state
+    let currentView = 'home'; // Track current view: 'home' or 'chat'
 
     // Initialize client
     const client = new TeamFlowClient();
@@ -51,10 +62,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const init = async () => {
         if (client.token) {
             try {
+                // Get username from localStorage
+                const savedUsername = localStorage.getItem('teamflow_username');
+                if (savedUsername) {
+                    currentUser = { username: savedUsername };
+                }
+                
                 // Fetch user data and teams
-                // For now, let's just show the main interface
                 showApp();
-                loadTeams(); // This would be implemented to fetch teams from API
+                await loadTeams(); // Load teams from API
+                showHomeView(); // Show home view by default
             } catch (error) {
                 console.error('Session expired or invalid', error);
                 client.logout();
@@ -81,6 +98,160 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUsername.textContent = currentUser.username;
         }
     };
+    
+    // Show home view
+    const showHomeView = () => {
+        homeView.style.display = 'flex';
+        chatView.style.display = 'none';
+        currentView = 'home';
+        
+        // Add home-mode class to body for CSS targeting
+        document.body.classList.add('home-mode');
+        
+        // Mark home icon as active and remove active from team icons
+        document.querySelectorAll('.team-icon').forEach(icon => {
+            icon.classList.remove('active');
+        });
+        homeIcon.classList.add('active');
+        
+        // Update home page content
+        updateHomeContent();
+    };
+    
+    // Show chat view
+    const showChatView = () => {
+        homeView.style.display = 'none';
+        chatView.style.display = 'flex';
+        currentView = 'chat';
+        
+        // Remove home-mode class from body
+        document.body.classList.remove('home-mode');
+        
+        // Remove active from home icon
+        homeIcon.classList.remove('active');
+    };
+    
+    // Update home content
+    const updateHomeContent = () => {
+        // Update teams list in home view
+        renderHomeTeams();
+        
+        // Update recent epics
+        renderHomeEpics();
+        
+        // Update active sprints
+        renderHomeSprints();
+    };
+    
+    // Render teams in home view
+    const renderHomeTeams = () => {
+        // Clear previous content except the empty state
+        const currentEmptyState = homeTeamsList.querySelector('.empty-home-state');
+        homeTeamsList.innerHTML = '';
+        
+        if (teams.length === 0) {
+            // Show empty state
+            homeTeamsList.appendChild(currentEmptyState);
+            return;
+        }
+        
+        // Hide empty state when we have teams
+        teams.forEach(team => {
+            const teamItem = document.createElement('div');
+            teamItem.className = 'home-team-item';
+            
+            const teamIcon = document.createElement('div');
+            teamIcon.className = 'home-team-icon';
+            teamIcon.textContent = team.name.charAt(0).toUpperCase();
+            
+            const teamName = document.createElement('div');
+            teamName.className = 'home-team-name';
+            teamName.textContent = team.name;
+            
+            teamItem.appendChild(teamIcon);
+            teamItem.appendChild(teamName);
+            
+            teamItem.addEventListener('click', () => {
+                selectTeam(team);
+                showChatView();
+            });
+            
+            homeTeamsList.appendChild(teamItem);
+        });
+    };
+    
+    // Render recent epics in home view
+    const renderHomeEpics = () => {
+        homeRecentEpics.innerHTML = '';
+        
+        if (epics.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-home-state';
+            emptyState.innerHTML = '<p>No recent epics to display.</p>';
+            homeRecentEpics.appendChild(emptyState);
+            return;
+        }
+        
+        // Show up to 3 most recent epics
+        const recentEpics = epics.slice(0, 3);
+        recentEpics.forEach(epic => {
+            const epicItem = document.createElement('div');
+            epicItem.className = 'home-team-item'; // Reuse the same style
+            
+            const epicIcon = document.createElement('div');
+            epicIcon.className = 'home-team-icon';
+            epicIcon.innerHTML = '<i class="fas fa-bookmark"></i>';
+            
+            const epicName = document.createElement('div');
+            epicName.className = 'home-team-name';
+            epicName.textContent = epic.name;
+            
+            epicItem.appendChild(epicIcon);
+            epicItem.appendChild(epicName);
+            
+            homeRecentEpics.appendChild(epicItem);
+        });
+    };
+    
+    // Render active sprints in home view
+    const renderHomeSprints = () => {
+        homeActiveSprints.innerHTML = '';
+        
+        if (sprints.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-home-state';
+            emptyState.innerHTML = '<p>No active sprints to display.</p>';
+            homeActiveSprints.appendChild(emptyState);
+            return;
+        }
+        
+        // Show up to 3 most recent sprints
+        const activeSprints = sprints.slice(0, 3);
+        activeSprints.forEach(sprint => {
+            const sprintItem = document.createElement('div');
+            sprintItem.className = 'home-team-item'; // Reuse the same style
+            
+            const sprintIcon = document.createElement('div');
+            sprintIcon.className = 'home-team-icon';
+            sprintIcon.innerHTML = '<i class="fas fa-running"></i>';
+            
+            const sprintName = document.createElement('div');
+            sprintName.className = 'home-team-name';
+            sprintName.textContent = sprint.name;
+            
+            sprintItem.appendChild(sprintIcon);
+            sprintItem.appendChild(sprintName);
+            
+            sprintItem.addEventListener('click', () => {
+                if (currentTeam) {
+                    selectSprint(sprint);
+                    showChatView();
+                }
+            });
+            
+            homeActiveSprints.appendChild(sprintItem);
+        });
+    };
 
     // Handle auth tab switching
     authTabs.forEach(tab => {
@@ -105,8 +276,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await client.login(username, password);
             currentUser = { username }; // In real app, fetch user details from API
+            
+            // Store username in localStorage for persistence
+            localStorage.setItem('teamflow_username', username);
+            
             showApp();
-            loadTeams();
+            await loadTeams();
+            showHomeView(); // Show home view after login
         } catch (error) {
             alert('Login failed: ' + error.message);
         }
@@ -127,8 +303,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await client.register(username, password);
             currentUser = { username }; // In real app, fetch user details from API
+            
+            // Store username in localStorage for persistence
+            localStorage.setItem('teamflow_username', username);
+            
             showApp();
-            loadTeams();
+            await loadTeams();
+            showHomeView(); // Show home view after registration
         } catch (error) {
             alert('Registration failed: ' + error.message);
         }
@@ -137,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle logout
     logoutBtn.addEventListener('click', () => {
         client.logout();
+        localStorage.removeItem('teamflow_username'); // Clear stored username
         currentUser = null;
         currentTeam = null;
         currentSprint = null;
@@ -182,6 +364,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const fetchedTeams = await client.getAllTeams();
             teams = fetchedTeams;
             renderTeams();
+            renderHomeTeams(); // Update home view teams list
+            
             if (teams.length > 0) {
                 selectTeam(teams[0]); // Select first team by default
             }
@@ -193,6 +377,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Render teams in sidebar
     const renderTeams = () => {
         teamsList.innerHTML = '';
+        
+        if (teams.length === 0) {
+            // Add a helpful message when there are no teams
+            const emptyTeamsMessage = document.createElement('div');
+            emptyTeamsMessage.className = 'empty-state';
+            emptyTeamsMessage.innerHTML = `
+                <p>No teams yet</p>
+                <p>Click + below to create one</p>
+            `;
+            teamsList.appendChild(emptyTeamsMessage);
+            return;
+        }
+        
         teams.forEach(team => {
             const teamIcon = document.createElement('div');
             teamIcon.className = 'team-icon';
@@ -206,6 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             teamIcon.addEventListener('click', () => {
                 selectTeam(team);
+                showChatView(); // Switch to chat view when team is selected
             });
             
             teamsList.appendChild(teamIcon);
@@ -271,11 +469,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Handle starting a new sprint
-    startSprintBtn.addEventListener('click', async () => {
-        if (!currentTeam) return;
+    // Handle starting a new sprint - show modal
+    startSprintBtn.addEventListener('click', () => {
+        if (!currentTeam) {
+            alert('Please select a team first');
+            return;
+        }
         
-        const sprintName = prompt("Enter sprint name:", "Sprint Name");
+        document.getElementById('startSprintModal').style.display = 'flex';
+    });
+    
+    // Handle sprint creation form submission
+    document.getElementById('startSprintForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const sprintName = document.getElementById('sprintName').value;
         if (!sprintName) return;
 
         try {
@@ -283,6 +491,8 @@ document.addEventListener('DOMContentLoaded', () => {
             sprints.push(sprint);
             renderSprints();
             selectSprint(sprint);
+            document.getElementById('startSprintModal').style.display = 'none';
+            document.getElementById('sprintName').value = ''; // Clear the input
         } catch (error) {
             alert('Failed to start sprint: ' + error.message);
         }
@@ -336,9 +546,32 @@ document.addEventListener('DOMContentLoaded', () => {
         messageGroup.className = 'message-group';
         
         // Format timestamp from message data
-        const messageDate = new Date(message.createdAt);
-        const formattedDate = messageDate.toLocaleDateString();
-        const formattedTime = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        let formattedDate = '';
+        let formattedTime = '';
+        
+        if (message.createdAt) {
+            try {
+                const messageDate = new Date(message.createdAt);
+                if (!isNaN(messageDate.getTime())) {
+                    formattedDate = messageDate.toLocaleDateString();
+                    formattedTime = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                } else {
+                    formattedDate = 'Today';
+                    formattedTime = 'Just now';
+                }
+            } catch (e) {
+                formattedDate = 'Today';
+                formattedTime = 'Just now';
+            }
+        } else {
+            formattedDate = 'Today';
+            formattedTime = 'Just now';
+        }
+        
+        // Get username safely
+        const username = message.sender && message.sender.username ?
+            message.sender.username :
+            (currentUser ? currentUser.username : 'Unknown User');
         
         messageGroup.innerHTML = `
             <div class="message-avatar">
@@ -346,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="message-content">
                 <div class="message-header">
-                    <span class="message-author">${message.sender?.username || 'Unknown User'}</span>
+                    <span class="message-author">${username}</span>
                     <span class="message-timestamp">${formattedDate} ${formattedTime}</span>
                 </div>
                 <div class="message-text">${message.content}</div>
@@ -514,11 +747,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load user stories for a sprint
     const loadUserStories = async (sprint) => {
         try {
-            // Assuming sprint object has epicId
-            const userStories = await client.getAllUserStoriesByEpicId(sprint.epicId);
-            renderUserStories(userStories);
+            // Check if sprint has epicId before trying to load user stories
+            if (sprint.epicId) {
+                const userStories = await client.getAllUserStoriesByEpicId(sprint.epicId);
+                renderUserStories(userStories);
+            } else {
+                // If no epicId, just show empty state
+                renderUserStories([]);
+            }
         } catch (error) {
             console.error('Failed to load user stories', error);
+            renderUserStories([]);
         }
     };
 
@@ -542,6 +781,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // Home icon click handler - show home view
+    homeIcon.addEventListener('click', () => {
+        showHomeView();
+    });
+    
+    // Home create team button click handler
+    homeCreateTeamBtn.addEventListener('click', () => {
+        createTeamModal.style.display = 'flex';
+    });
+    
     // Initialize the app
     init();
 });
