@@ -674,11 +674,35 @@ const renderEpics = () => {
 	epics.forEach(epic => {
 		const epicItem = document.createElement('div');
 		epicItem.className = 'channel-item'; // Reusing channel-item style
+		
+		// Add selected-epic class if this epic is selected
+		if (selectedEpic && selectedEpic.id === epic.id) {
+			epicItem.classList.add('selected-epic');
+		}
+		
 		epicItem.innerHTML = `<i class="fas fa-bookmark"></i> <span>${epic.name}</span>`; // Using bookmark icon for epics
 
+		// Add click handler to select/deselect epic
+		epicItem.addEventListener('click', () => {
+			if (selectedEpic && selectedEpic.id === epic.id) {
+				// Deselect if already selected
+				selectedEpic = null;
+				epicItem.classList.remove('selected-epic');
+				// Clear user stories
+				userStories = [];
+				renderUserStories();
+				// Clear tasks
+				tasks = [];
+				renderTasks();
+			} else {
+				// Select this epic
+				selectEpic(epic);
+			}
+		});
+
+		// Add context menu for edit/delete
 		epicItem.addEventListener('contextmenu', (event) => {
 			event.preventDefault();
-			selectedEpic = epic; // Store the selected epic
 
 			const contextMenu = document.createElement('div');
 			contextMenu.className = 'context-menu';
@@ -686,17 +710,12 @@ const renderEpics = () => {
 			contextMenu.style.left = event.clientX + 'px';
 			contextMenu.style.top = event.clientY + 'px';
 			contextMenu.innerHTML = `
-				<div class="context-menu-item" id="selectEpic">Select Epic</div>
 				<div class="context-menu-item" id="editEpic">Edit</div>
 				<div class="context-menu-item" id="deleteEpic">Delete</div>
 			`;
 			document.body.appendChild(contextMenu);
 
 			// Event listeners for context menu items
-			document.getElementById('selectEpic').addEventListener('click', () => {
-				selectEpic(epic);
-				contextMenu.remove();
-			});
 			document.getElementById('editEpic').addEventListener('click', () => {
 				showEditEpicModal(epic);
 				contextMenu.remove();
@@ -809,9 +828,6 @@ const selectEpic = (epic) => {
 			item.classList.add('selected-epic');
 		}
 	});
-	
-	// Show a notification
-	alert(`Epic "${epic.name}" selected. You can now create user stories for this epic.`);
 	
 	// Load user stories for this epic
 	loadUserStoriesForEpic(epic.id);
