@@ -686,12 +686,17 @@ const renderEpics = () => {
 			contextMenu.style.left = event.clientX + 'px';
 			contextMenu.style.top = event.clientY + 'px';
 			contextMenu.innerHTML = `
+				<div class="context-menu-item" id="selectEpic">Select Epic</div>
 				<div class="context-menu-item" id="editEpic">Edit</div>
 				<div class="context-menu-item" id="deleteEpic">Delete</div>
 			`;
 			document.body.appendChild(contextMenu);
 
 			// Event listeners for context menu items
+			document.getElementById('selectEpic').addEventListener('click', () => {
+				selectEpic(epic);
+				contextMenu.remove();
+			});
 			document.getElementById('editEpic').addEventListener('click', () => {
 				showEditEpicModal(epic);
 				contextMenu.remove();
@@ -714,9 +719,40 @@ const renderEpics = () => {
 	});
 };
 
+// DOM Elements for new buttons
+const addUserStoryButton = document.getElementById('addUserStoryButton');
+const addTaskButton = document.getElementById('addTaskButton');
+
 // Show create epic modal
 addEpicButton.addEventListener('click', () => {
 	createEpicModal.style.display = 'flex';
+});
+
+// Show create user story modal when button is clicked
+addUserStoryButton.addEventListener('click', () => {
+	if (!selectedEpic) {
+		alert('Please select an epic first by right-clicking on an epic and selecting "Select Epic"');
+		return;
+	}
+	showCreateUserStoryModal(selectedEpic.id);
+});
+
+// Show create task modal when button is clicked
+addTaskButton.addEventListener('click', () => {
+	// Find the active user story
+	const activeUserStoryItem = document.querySelector('.channel-item.active');
+	if (!activeUserStoryItem) {
+		alert('Please select a user story first');
+		return;
+	}
+	
+	const userStoryName = activeUserStoryItem.querySelector('span').textContent;
+	const userStory = userStories.find(us => us.name === userStoryName);
+	if (userStory) {
+		showCreateTaskModal(userStory.id);
+	} else {
+		alert('Please select a user story first');
+	}
 });
 
 // Handle epic creation
@@ -761,6 +797,39 @@ editEpicForm.addEventListener('submit', async (e) => {
 	}
 });
 
+// Select an epic
+const selectEpic = (epic) => {
+	selectedEpic = epic;
+	
+	// Update UI to show this epic is selected
+	document.querySelectorAll('.channel-item').forEach(item => {
+		item.classList.remove('selected-epic');
+		if (item.querySelector('span').textContent === epic.name &&
+			item.querySelector('i').classList.contains('fa-bookmark')) {
+			item.classList.add('selected-epic');
+		}
+	});
+	
+	// Show a notification
+	alert(`Epic "${epic.name}" selected. You can now create user stories for this epic.`);
+	
+	// Load user stories for this epic
+	loadUserStoriesForEpic(epic.id);
+};
+
+// Load user stories for an epic
+const loadUserStoriesForEpic = async (epicId) => {
+	try {
+		const fetchedUserStories = await client.getAllUserStoriesByEpicId(epicId);
+		userStories = fetchedUserStories;
+		renderUserStories();
+	} catch (error) {
+		console.error('Failed to load user stories', error);
+		userStories = [];
+		renderUserStories();
+	}
+};
+
 // Handle epic deletion
 const deleteEpic = async (epic) => {
 	if (!confirm('Are you sure you want to delete this epic?')) return;
@@ -769,6 +838,15 @@ const deleteEpic = async (epic) => {
 		await client.deleteEpic(epic.id);
 		epics = epics.filter(e => e.id !== epic.id);
 		renderEpics();
+		
+		// Clear selected epic if it's the one being deleted
+		if (selectedEpic && selectedEpic.id === epic.id) {
+			selectedEpic = null;
+			userStories = [];
+			renderUserStories();
+			tasks = [];
+			renderTasks();
+		}
 	} catch (error) {
 		alert('Failed to delete epic: ' + error.message);
 	}
@@ -869,31 +947,44 @@ const deleteSprint = async (sprint) => {
 	}
 };
 
-// Load user stories for a sprint
+// Load user stories for a sprint or epic
 const loadUserStories = async (sprint) => {
 	try {
 		// Check if sprint has epicId before trying to load user stories
 		if (sprint.epicId) {
-			const userStories = await client.getAllUserStoriesByEpicId(sprint.epicId);
-			renderUserStories(userStories);
+			const fetchedUserStories = await client.getAllUserStoriesByEpicId(sprint.epicId);
+			userStories = fetchedUserStories;
+			renderUserStories();
 		} else {
 			// If no epicId, just show empty state
-			renderUserStories([]);
+			userStories = [];
+			renderUserStories();
 		}
 	} catch (error) {
 		console.error('Failed to load user stories', error);
-		renderUserStories([]);
+		userStories = [];
+		renderUserStories();
 	}
 };
 
 // Render user stories in sidebar
-const renderUserStories = (userStories) => {
+const renderUserStories = () => {
 	userStoriesList.innerHTML = '';
 
 	if (userStories.length === 0) {
 		const emptyState = document.createElement('div');
 		emptyState.className = 'empty-state';
 		emptyState.textContent = 'No user stories yet';
+		
+		// Add button to create user story if we have an epic
+		if (currentSprint && currentSprint.epicId) {
+			const createButton = document.createElement('button');
+			createButton.className = 'add-item-button';
+			createButton.innerHTML = '<i class="fas fa-plus"></i> Add User Story';
+			createButton.addEventListener('click', () => showCreateUserStoryModal(currentSprint.epicId));
+			emptyState.appendChild(createButton);
+		}
+		
 		userStoriesList.appendChild(emptyState);
 		return;
 	}
@@ -902,9 +993,515 @@ const renderUserStories = (userStories) => {
 		const userStoryItem = document.createElement('div');
 		userStoryItem.className = 'channel-item';
 		userStoryItem.innerHTML = `<i class="fas fa-list"></i> <span>${userStory.name}</span>`;
+		
+		// Add click handler to select user story and load its tasks
+		userStoryItem.addEventListener('click', () => {
+			selectUserStory(userStory);
+		});
+		
+		// Add context menu for user story
+		userStoryItem.addEventListener('contextmenu', (event) => {
+			event.preventDefault();
+			
+			const contextMenu = document.createElement('div');
+			contextMenu.className = 'context-menu';
+			contextMenu.style.position = 'absolute';
+			contextMenu.style.left = event.clientX + 'px';
+			contextMenu.style.top = event.clientY + 'px';
+			contextMenu.innerHTML = `
+				<div class="context-menu-item" id="editUserStory">Edit</div>
+				<div class="context-menu-item" id="deleteUserStory">Delete</div>
+				<div class="context-menu-item" id="addTask">Add Task</div>
+			`;
+			document.body.appendChild(contextMenu);
+			
+			// Event listeners for context menu items
+			document.getElementById('editUserStory').addEventListener('click', () => {
+				showEditUserStoryModal(userStory);
+				contextMenu.remove();
+			});
+			document.getElementById('deleteUserStory').addEventListener('click', () => {
+				deleteUserStory(userStory);
+				contextMenu.remove();
+			});
+			document.getElementById('addTask').addEventListener('click', () => {
+				showCreateTaskModal(userStory.id);
+				contextMenu.remove();
+			});
+			
+			// Close context menu on outside click
+			document.addEventListener('click', function outsideClickListener(event) {
+				if (!contextMenu.contains(event.target)) {
+					contextMenu.remove();
+					document.removeEventListener('click', outsideClickListener);
+				}
+			});
+		});
+		
 		userStoriesList.appendChild(userStoryItem);
 	});
+	
+	// Add a button to create a new user story
+	if (currentSprint && currentSprint.epicId) {
+		const addUserStoryButton = document.createElement('div');
+		addUserStoryButton.className = 'add-item-button';
+		addUserStoryButton.innerHTML = '<i class="fas fa-plus"></i> Add User Story';
+		addUserStoryButton.addEventListener('click', () => showCreateUserStoryModal(currentSprint.epicId));
+		userStoriesList.appendChild(addUserStoryButton);
+	}
 };
+
+// Select a user story and load its tasks
+const selectUserStory = async (userStory) => {
+	// Update UI to show this user story is selected
+	document.querySelectorAll('.channel-item').forEach(item => {
+		item.classList.remove('active');
+		if (item.querySelector('span').textContent === userStory.name) {
+			item.classList.add('active');
+		}
+	});
+	
+	// Load tasks for this user story
+	await loadTasks(userStory.id);
+};
+
+// Load tasks for a user story
+const loadTasks = async (userStoryId) => {
+	try {
+		const fetchedTasks = await client.getAllTasksByUserStoryId(userStoryId);
+		tasks = fetchedTasks;
+		renderTasks();
+	} catch (error) {
+		console.error('Failed to load tasks', error);
+		tasks = [];
+		renderTasks();
+	}
+};
+
+// Render tasks in sidebar
+const renderTasks = () => {
+	tasksList.innerHTML = '';
+	
+	if (tasks.length === 0) {
+		const emptyState = document.createElement('div');
+		emptyState.className = 'empty-state';
+		emptyState.textContent = 'No tasks yet';
+		
+		// Add button to create task if we have a selected user story
+		if (userStories.length > 0) {
+			const createButton = document.createElement('button');
+			createButton.className = 'add-item-button';
+			createButton.innerHTML = '<i class="fas fa-plus"></i> Add Task';
+			createButton.addEventListener('click', () => {
+				// Find the active user story
+				const activeUserStoryItem = document.querySelector('.channel-item.active');
+				if (activeUserStoryItem) {
+					const userStoryName = activeUserStoryItem.querySelector('span').textContent;
+					const userStory = userStories.find(us => us.name === userStoryName);
+					if (userStory) {
+						showCreateTaskModal(userStory.id);
+					}
+				}
+			});
+			emptyState.appendChild(createButton);
+		}
+		
+		tasksList.appendChild(emptyState);
+		return;
+	}
+	
+	tasks.forEach(task => {
+		const taskItem = document.createElement('div');
+		taskItem.className = 'channel-item';
+		
+		// Add status indicator
+		let statusIcon = 'fa-circle';
+		let statusClass = '';
+		
+		if (task.status === 'TODO') {
+			statusClass = 'status-todo';
+		} else if (task.status === 'IN_PROGRESS') {
+			statusClass = 'status-in-progress';
+		} else if (task.status === 'DONE') {
+			statusClass = 'status-done';
+		}
+		
+		taskItem.innerHTML = `
+			<i class="fas fa-tasks"></i>
+			<span>${task.name}</span>
+			<span class="task-status ${statusClass}"><i class="fas ${statusIcon}"></i></span>
+		`;
+		
+		// Add context menu for task
+		taskItem.addEventListener('contextmenu', (event) => {
+			event.preventDefault();
+			
+			const contextMenu = document.createElement('div');
+			contextMenu.className = 'context-menu';
+			contextMenu.style.position = 'absolute';
+			contextMenu.style.left = event.clientX + 'px';
+			contextMenu.style.top = event.clientY + 'px';
+			contextMenu.innerHTML = `
+				<div class="context-menu-item" id="editTask">Edit</div>
+				<div class="context-menu-item" id="deleteTask">Delete</div>
+				<div class="context-menu-header">Change Status</div>
+				<div class="context-menu-item" id="setStatusTodo">To Do</div>
+				<div class="context-menu-item" id="setStatusInProgress">In Progress</div>
+				<div class="context-menu-item" id="setStatusDone">Done</div>
+			`;
+			document.body.appendChild(contextMenu);
+			
+			// Event listeners for context menu items
+			document.getElementById('editTask').addEventListener('click', () => {
+				showEditTaskModal(task);
+				contextMenu.remove();
+			});
+			document.getElementById('deleteTask').addEventListener('click', () => {
+				deleteTask(task);
+				contextMenu.remove();
+			});
+			document.getElementById('setStatusTodo').addEventListener('click', () => {
+				updateTaskStatus(task, 'TODO');
+				contextMenu.remove();
+			});
+			document.getElementById('setStatusInProgress').addEventListener('click', () => {
+				updateTaskStatus(task, 'IN_PROGRESS');
+				contextMenu.remove();
+			});
+			document.getElementById('setStatusDone').addEventListener('click', () => {
+				updateTaskStatus(task, 'DONE');
+				contextMenu.remove();
+			});
+			
+			// Close context menu on outside click
+			document.addEventListener('click', function outsideClickListener(event) {
+				if (!contextMenu.contains(event.target)) {
+					contextMenu.remove();
+					document.removeEventListener('click', outsideClickListener);
+				}
+			});
+		});
+		
+		tasksList.appendChild(taskItem);
+	});
+	
+	// Add a button to create a new task
+	if (userStories.length > 0) {
+		const addTaskButton = document.createElement('div');
+		addTaskButton.className = 'add-item-button';
+		addTaskButton.innerHTML = '<i class="fas fa-plus"></i> Add Task';
+		addTaskButton.addEventListener('click', () => {
+			// Find the active user story
+			const activeUserStoryItem = document.querySelector('.channel-item.active');
+			if (activeUserStoryItem) {
+				const userStoryName = activeUserStoryItem.querySelector('span').textContent;
+				const userStory = userStories.find(us => us.name === userStoryName);
+				if (userStory) {
+					showCreateTaskModal(userStory.id);
+				}
+			}
+		});
+		tasksList.appendChild(addTaskButton);
+	}
+};
+
+// Show create user story modal
+const showCreateUserStoryModal = (epicId) => {
+	// Clear form fields
+	document.getElementById('userStoryName').value = '';
+	document.getElementById('userStoryDescription').value = '';
+	
+	// Store the epic ID for form submission
+	createUserStoryModal.dataset.epicId = epicId;
+	
+	// Show the modal
+	createUserStoryModal.style.display = 'flex';
+};
+
+// Show edit user story modal
+const showEditUserStoryModal = (userStory) => {
+	// Create modal if it doesn't exist
+	let editUserStoryModal = document.getElementById('editUserStoryModal');
+	if (!editUserStoryModal) {
+		editUserStoryModal = document.createElement('div');
+		editUserStoryModal.id = 'editUserStoryModal';
+		editUserStoryModal.className = 'modal';
+		editUserStoryModal.innerHTML = `
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2>Edit User Story</h2>
+					<span class="close-modal">&times;</span>
+				</div>
+				<div class="modal-body">
+					<form id="editUserStoryForm">
+						<div class="form-group">
+							<label for="editUserStoryName">USER STORY NAME</label>
+							<input type="text" id="editUserStoryName" required>
+						</div>
+						<div class="form-group">
+							<label for="editUserStoryDescription">USER STORY DESCRIPTION</label>
+							<textarea id="editUserStoryDescription"></textarea>
+						</div>
+						<div class="form-group">
+							<label for="editUserStoryStatus">STATUS</label>
+							<select id="editUserStoryStatus">
+								<option value="TODO">To Do</option>
+								<option value="IN_PROGRESS">In Progress</option>
+								<option value="DONE">Done</option>
+							</select>
+						</div>
+						<button type="submit" class="modal-button">Update User Story</button>
+					</form>
+				</div>
+			</div>
+		`;
+		document.body.appendChild(editUserStoryModal);
+		
+		// Add close button functionality
+		editUserStoryModal.querySelector('.close-modal').addEventListener('click', () => {
+			editUserStoryModal.style.display = 'none';
+		});
+		
+		// Add form submission handler
+		document.getElementById('editUserStoryForm').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			
+			const userStoryId = editUserStoryModal.dataset.userStoryId;
+			const name = document.getElementById('editUserStoryName').value;
+			const description = document.getElementById('editUserStoryDescription').value;
+			const status = document.getElementById('editUserStoryStatus').value;
+			
+			try {
+				const updatedUserStory = await client.updateUserStory(userStoryId, {
+					name,
+					description,
+					status
+				});
+				
+				// Update user story in the userStories array
+				userStories = userStories.map(us => us.id === updatedUserStory.id ? updatedUserStory : us);
+				renderUserStories();
+				
+				editUserStoryModal.style.display = 'none';
+			} catch (error) {
+				alert('Failed to update user story: ' + error.message);
+			}
+		});
+	}
+	
+	// Set current values in the form
+	document.getElementById('editUserStoryName').value = userStory.name;
+	document.getElementById('editUserStoryDescription').value = userStory.description || '';
+	document.getElementById('editUserStoryStatus').value = userStory.status || 'TODO';
+	
+	// Store the user story ID for form submission
+	editUserStoryModal.dataset.userStoryId = userStory.id;
+	
+	// Show the modal
+	editUserStoryModal.style.display = 'flex';
+};
+
+// Delete user story
+const deleteUserStory = async (userStory) => {
+	if (!confirm('Are you sure you want to delete this user story? This will also delete all associated tasks.')) return;
+	
+	try {
+		await client.deleteUserStory(userStory.id);
+		
+		// Remove user story from the userStories array
+		userStories = userStories.filter(us => us.id !== userStory.id);
+		renderUserStories();
+		
+		// Clear tasks if the deleted user story was selected
+		tasks = [];
+		renderTasks();
+	} catch (error) {
+		alert('Failed to delete user story: ' + error.message);
+	}
+};
+
+// Show create task modal
+const showCreateTaskModal = (userStoryId) => {
+	// Clear form fields
+	document.getElementById('taskName').value = '';
+	document.getElementById('taskDescription').value = '';
+	
+	// Store the user story ID for form submission
+	createTaskModal.dataset.userStoryId = userStoryId;
+	
+	// Show the modal
+	createTaskModal.style.display = 'flex';
+};
+
+// Show edit task modal
+const showEditTaskModal = (task) => {
+	// Create modal if it doesn't exist
+	let editTaskModal = document.getElementById('editTaskModal');
+	if (!editTaskModal) {
+		editTaskModal = document.createElement('div');
+		editTaskModal.id = 'editTaskModal';
+		editTaskModal.className = 'modal';
+		editTaskModal.innerHTML = `
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2>Edit Task</h2>
+					<span class="close-modal">&times;</span>
+				</div>
+				<div class="modal-body">
+					<form id="editTaskForm">
+						<div class="form-group">
+							<label for="editTaskName">TASK NAME</label>
+							<input type="text" id="editTaskName" required>
+						</div>
+						<div class="form-group">
+							<label for="editTaskDescription">TASK DESCRIPTION</label>
+							<textarea id="editTaskDescription"></textarea>
+						</div>
+						<div class="form-group">
+							<label for="editTaskStatus">STATUS</label>
+							<select id="editTaskStatus">
+								<option value="TODO">To Do</option>
+								<option value="IN_PROGRESS">In Progress</option>
+								<option value="DONE">Done</option>
+							</select>
+						</div>
+						<button type="submit" class="modal-button">Update Task</button>
+					</form>
+				</div>
+			</div>
+		`;
+		document.body.appendChild(editTaskModal);
+		
+		// Add close button functionality
+		editTaskModal.querySelector('.close-modal').addEventListener('click', () => {
+			editTaskModal.style.display = 'none';
+		});
+		
+		// Add form submission handler
+		document.getElementById('editTaskForm').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			
+			const taskId = editTaskModal.dataset.taskId;
+			const name = document.getElementById('editTaskName').value;
+			const description = document.getElementById('editTaskDescription').value;
+			const status = document.getElementById('editTaskStatus').value;
+			
+			try {
+				const updatedTask = await client.updateTask(taskId, {
+					name,
+					description,
+					status
+				});
+				
+				// Update task in the tasks array
+				tasks = tasks.map(t => t.id === updatedTask.id ? updatedTask : t);
+				renderTasks();
+				
+				editTaskModal.style.display = 'none';
+			} catch (error) {
+				alert('Failed to update task: ' + error.message);
+			}
+		});
+	}
+	
+	// Set current values in the form
+	document.getElementById('editTaskName').value = task.name;
+	document.getElementById('editTaskDescription').value = task.description || '';
+	document.getElementById('editTaskStatus').value = task.status || 'TODO';
+	
+	// Store the task ID for form submission
+	editTaskModal.dataset.taskId = task.id;
+	
+	// Show the modal
+	editTaskModal.style.display = 'flex';
+};
+
+// Delete task
+const deleteTask = async (task) => {
+	if (!confirm('Are you sure you want to delete this task?')) return;
+	
+	try {
+		await client.deleteTask(task.id);
+		
+		// Remove task from the tasks array
+		tasks = tasks.filter(t => t.id !== task.id);
+		renderTasks();
+	} catch (error) {
+		alert('Failed to delete task: ' + error.message);
+	}
+};
+
+// Update task status
+const updateTaskStatus = async (task, newStatus) => {
+	try {
+		const updatedTask = await client.updateTask(task.id, {
+			...task,
+			status: newStatus
+		});
+		
+		// Update task in the tasks array
+		tasks = tasks.map(t => t.id === updatedTask.id ? updatedTask : t);
+		renderTasks();
+	} catch (error) {
+		alert('Failed to update task status: ' + error.message);
+	}
+};
+
+// Handle user story creation
+createUserStoryForm.addEventListener('submit', async (e) => {
+	e.preventDefault();
+	
+	const epicId = createUserStoryModal.dataset.epicId;
+	const name = document.getElementById('userStoryName').value;
+	const description = document.getElementById('userStoryDescription').value;
+	
+	try {
+		const userStory = await client.createUserStory(epicId, {
+			name,
+			description,
+			status: 'TODO' // Default status
+		});
+		
+		// Add the new user story to the userStories array
+		userStories.push(userStory);
+		renderUserStories();
+		
+		// Close the modal and clear the form
+		createUserStoryModal.style.display = 'none';
+		document.getElementById('userStoryName').value = '';
+		document.getElementById('userStoryDescription').value = '';
+	} catch (error) {
+		alert('Failed to create user story: ' + error.message);
+	}
+});
+
+// Handle task creation
+createTaskForm.addEventListener('submit', async (e) => {
+	e.preventDefault();
+	
+	const userStoryId = createTaskModal.dataset.userStoryId;
+	const name = document.getElementById('taskName').value;
+	const description = document.getElementById('taskDescription').value;
+	
+	try {
+		const task = await client.createTask(userStoryId, {
+			name,
+			description,
+			status: 'TODO' // Default status
+		});
+		
+		// Add the new task to the tasks array
+		tasks.push(task);
+		renderTasks();
+		
+		// Close the modal and clear the form
+		createTaskModal.style.display = 'none';
+		document.getElementById('taskName').value = '';
+		document.getElementById('taskDescription').value = '';
+	} catch (error) {
+		alert('Failed to create task: ' + error.message);
+	}
+});
 
 // Home icon click handler - show home view
 homeIcon.addEventListener('click', () => {

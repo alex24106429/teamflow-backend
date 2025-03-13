@@ -491,6 +491,12 @@ body {
     color: var(--light-primary);
 }
 
+.channel-item.selected-epic {
+    background-color: rgba(88, 101, 242, 0.24);
+    color: var(--light-primary);
+    border-left: 3px solid var(--accent);
+}
+
 .team-controls {
     margin-top: 16px;
     padding: 0 8px;
@@ -878,6 +884,55 @@ body {
     padding: 12px;
     font-size: 14px;
     line-height: 1.4;
+}
+
+/* Task Status Styles */
+.task-status {
+    margin-left: auto;
+    font-size: 10px;
+}
+
+.status-todo {
+    color: var(--light-tertiary);
+}
+
+.status-in-progress {
+    color: #faa61a; /* Orange color for in progress */
+}
+
+.status-done {
+    color: var(--success);
+}
+
+/* Add Item Button */
+.add-item-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    color: var(--light-tertiary);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 14px;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.add-item-button:hover {
+    background-color: rgba(79, 84, 92, 0.16);
+    color: var(--light-secondary);
+}
+
+/* Context Menu Header */
+.context-menu-header {
+    padding: 8px 12px;
+    color: var(--light-tertiary);
+    font-size: 12px;
+    font-weight: 600;
+    border-top: 1px solid rgba(79, 84, 92, 0.48);
 }
 
 /* Scrollbar Styles */
