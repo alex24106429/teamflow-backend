@@ -1,6 +1,7 @@
 package com.teamflow.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +29,7 @@ public class UserStory {
     private Epic epic;
 
     @OneToMany(mappedBy = "userStory", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Task> tasks;
 
     public UUID getId() {

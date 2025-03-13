@@ -1,5 +1,6 @@
 package com.teamflow.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(name = "user_story_id", nullable = false)
+    @JsonBackReference
     private UserStory userStory;
 
     public enum TaskStatus {
