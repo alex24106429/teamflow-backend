@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let tasks = []; // New: Tasks state
 
     // Initialize client
-    const client = new ScrumChatClient();
+    const client = new TeamFlowClient();
 
     // Check if user is already logged in
     const init = async () => {

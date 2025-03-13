@@ -1,6 +1,6 @@
-# ScrumChat Backend
+# TeamFlow Backend
 
-ScrumChat is een applicatie ontworpen om de communicatie binnen Scrum teams te faciliteren, tijdens de daily stand-up.
+TeamFlow is een applicatie ontworpen om de communicatie binnen Scrum teams te faciliteren, tijdens de daily stand-up.
 
 ## Inhoudsopgave
 
@@ -32,7 +32,7 @@ ScrumChat is een applicatie ontworpen om de communicatie binnen Scrum teams te f
 
 ## 1. Introductie <a name="introductie"></a>
 
-De ScrumChat backend is een Spring Boot applicatie die RESTful API's en WebSocket functionaliteit biedt voor de ScrumChat applicatie.  Het maakt gebruik van een H2 in-memory database (standaard configuratie) of een persistente H2 database voor het opslaan van gegevens over gebruikers, teams, sprints en berichten.  Flyway wordt gebruikt voor database migraties.  De applicatie is ontworpen om schaalbaar en onderhoudbaar te zijn, en is nu uitgebreid met authenticatie en autorisatie functionaliteiten met behulp van Spring Security en JWT (toekomstige implementatie). WebSocket wordt gebruikt voor real-time communicatie.
+De TeamFlow backend is een Spring Boot applicatie die RESTful API's en WebSocket functionaliteit biedt voor de TeamFlow applicatie.  Het maakt gebruik van een H2 in-memory database (standaard configuratie) of een persistente H2 database voor het opslaan van gegevens over gebruikers, teams, sprints en berichten.  Flyway wordt gebruikt voor database migraties.  De applicatie is ontworpen om schaalbaar en onderhoudbaar te zijn, en is nu uitgebreid met authenticatie en autorisatie functionaliteiten met behulp van Spring Security en JWT (toekomstige implementatie). WebSocket wordt gebruikt voor real-time communicatie.
 
 ## 2. Vereisten <a name="vereisten"></a>
 
@@ -45,7 +45,7 @@ De ScrumChat backend is een Spring Boot applicatie die RESTful API's en WebSocke
 1.  **Kloon de repository:**
 
 	```bash
-	git clone https://github.com/alex24106429/scrumchat-backend
+	git clone https://github.com/alex24106429/teamflow-backend
 	```
 
 2.  **Open het project in Visual Studio Code of IntelliJ IDEA**
@@ -60,7 +60,7 @@ De applicatie wordt geconfigureerd via het `src/main/resources/application.prope
 
 ### 4.1 Database <a name="database"></a>
 
-* `spring.datasource.url`:  De JDBC URL voor de H2 database.  Standaard wordt een bestand `scrumchatdb` aangemaakt in de map `data`. Je kan ook een in-memory database gebruiken voor testdoeleinden: `jdbc:h2:mem:scrumchatdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE`.
+* `spring.datasource.url`:  De JDBC URL voor de H2 database.  Standaard wordt een bestand `teamflowdb` aangemaakt in de map `data`. Je kan ook een in-memory database gebruiken voor testdoeleinden: `jdbc:h2:mem:teamflowdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE`.
 * `spring.datasource.driver-class-name`: De JDBC driver klasse (voor H2 is dit `org.h2.Driver`).
 * `spring.datasource.username`: De database gebruikersnaam (standaard `sa`).
 * `spring.datasource.password`: Het database wachtwoord (standaard `password`).
@@ -71,7 +71,7 @@ De applicatie wordt geconfigureerd via het `src/main/resources/application.prope
 
 ### 4.2 JWT <a name="jwt"></a>
 
-* `jwt.secret`: De geheime sleutel die wordt gebruikt voor het ondertekenen van JWT tokens (standaard `scrumchat-secret-key`).  **Wijzig deze sleutel in een productieomgeving!**
+* `jwt.secret`: De geheime sleutel die wordt gebruikt voor het ondertekenen van JWT tokens (standaard `teamflow-secret-key`).  **Wijzig deze sleutel in een productieomgeving!**
 * `jwt.expiration`:  De vervaltijd van JWT tokens in milliseconden (standaard 86400000, wat overeenkomt met 24 uur of 1 dag).
 
 ### 4.3 WebSocket <a name="websocket"></a>
