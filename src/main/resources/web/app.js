@@ -461,6 +461,40 @@ const renderSprints = () => {
 			selectSprint(sprint);
 		});
 		
+		// Add context menu for sprint channels
+		sprintItem.addEventListener('contextmenu', (event) => {
+			event.preventDefault();
+			
+			const contextMenu = document.createElement('div');
+			contextMenu.className = 'context-menu';
+			contextMenu.style.position = 'absolute';
+			contextMenu.style.left = event.clientX + 'px';
+			contextMenu.style.top = event.clientY + 'px';
+			contextMenu.innerHTML = `
+				<div class="context-menu-item" id="renameSprint">Rename</div>
+				<div class="context-menu-item" id="deleteSprint">Delete</div>
+			`;
+			document.body.appendChild(contextMenu);
+			
+			// Event listeners for context menu items
+			document.getElementById('renameSprint').addEventListener('click', () => {
+				showRenameSprintModal(sprint);
+				contextMenu.remove();
+			});
+			document.getElementById('deleteSprint').addEventListener('click', () => {
+				deleteSprint(sprint);
+				contextMenu.remove();
+			});
+			
+			// Close context menu on outside click
+			document.addEventListener('click', function outsideClickListener(event) {
+				if (!contextMenu.contains(event.target)) {
+					contextMenu.remove();
+					document.removeEventListener('click', outsideClickListener);
+				}
+			});
+		});
+		
 		sprintsList.appendChild(sprintItem);
 	});
 };
@@ -737,6 +771,101 @@ const deleteEpic = async (epic) => {
 		renderEpics();
 	} catch (error) {
 		alert('Failed to delete epic: ' + error.message);
+	}
+};
+
+// Show rename sprint modal
+const showRenameSprintModal = (sprint) => {
+	// Create modal if it doesn't exist
+	let renameSprintModal = document.getElementById('renameSprintModal');
+	if (!renameSprintModal) {
+		renameSprintModal = document.createElement('div');
+		renameSprintModal.id = 'renameSprintModal';
+		renameSprintModal.className = 'modal';
+		renameSprintModal.innerHTML = `
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2>Rename Sprint</h2>
+					<span class="close-modal">&times;</span>
+				</div>
+				<div class="modal-body">
+					<form id="renameSprintForm">
+						<div class="form-group">
+							<label for="newSprintName">Sprint Name</label>
+							<input type="text" id="newSprintName" required>
+						</div>
+						<button type="submit" class="modal-button">Rename</button>
+					</form>
+				</div>
+			</div>
+		`;
+		document.body.appendChild(renameSprintModal);
+		
+		// Add close button functionality
+		renameSprintModal.querySelector('.close-modal').addEventListener('click', () => {
+			renameSprintModal.style.display = 'none';
+		});
+		
+		// Add form submission handler
+		document.getElementById('renameSprintForm').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const newName = document.getElementById('newSprintName').value;
+			if (!newName) return;
+			
+			try {
+				const updatedSprint = await client.updateSprint(currentRenamingSprint.id, newName);
+				// Update sprint in the sprints array
+				sprints = sprints.map(s => s.id === updatedSprint.id ? updatedSprint : s);
+				renderSprints();
+				
+				// Update current sprint if it's the one being renamed
+				if (currentSprint && currentSprint.id === updatedSprint.id) {
+					currentSprint = updatedSprint;
+					currentSprintName.textContent = updatedSprint.name;
+				}
+				
+				renameSprintModal.style.display = 'none';
+			} catch (error) {
+				alert('Failed to rename sprint: ' + error.message);
+			}
+		});
+	}
+	
+	// Set current sprint being renamed
+	window.currentRenamingSprint = sprint;
+	
+	// Set current value in the input
+	document.getElementById('newSprintName').value = sprint.name;
+	
+	// Show the modal
+	renameSprintModal.style.display = 'flex';
+};
+
+// Handle sprint deletion
+const deleteSprint = async (sprint) => {
+	if (!confirm('Are you sure you want to delete this sprint?')) return;
+	
+	try {
+		await client.deleteSprint(sprint.id);
+		
+		// Remove sprint from the sprints array
+		sprints = sprints.filter(s => s.id !== sprint.id);
+		renderSprints();
+		
+		// If the deleted sprint was the current one, clear the chat view
+		if (currentSprint && currentSprint.id === sprint.id) {
+			currentSprint = null;
+			chatMessages.innerHTML = '';
+			currentSprintName.textContent = '';
+			client.disconnectWebSocket();
+			
+			// Select another sprint if available
+			if (sprints.length > 0) {
+				selectSprint(sprints[0]);
+			}
+		}
+	} catch (error) {
+		alert('Failed to delete sprint: ' + error.message);
 	}
 };
 

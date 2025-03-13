@@ -4,6 +4,7 @@ import com.teamflow.model.Sprint;
 import com.teamflow.service.SprintService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -23,6 +24,16 @@ public class SprintController {
 	@PostMapping("/{sprintId}/stop")
 	public void stopSprint(@PathVariable UUID sprintId) {
 		sprintService.stopSprint(sprintId);
+	}
+
+	@PutMapping("/{sprintId}")
+	public Sprint updateSprint(@PathVariable UUID sprintId, @RequestBody Map<String, String> payload) {
+		return sprintService.updateSprint(sprintId, payload.get("name"));
+	}
+
+	@DeleteMapping("/{sprintId}")
+	public void deleteSprint(@PathVariable UUID sprintId) {
+		sprintService.deleteSprint(sprintId);
 	}
 
 	@GetMapping("/teams/{teamId}/sprints")

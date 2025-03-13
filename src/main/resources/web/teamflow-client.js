@@ -68,6 +68,19 @@ class TeamFlowClient {
 		});
 	}
 
+	async updateSprint(sprintId, name) {
+		return this._authenticatedFetch(`/sprints/${sprintId}`, {
+			method: 'PUT',
+			body: JSON.stringify({ name })
+		});
+	}
+
+	async deleteSprint(sprintId) {
+		return this._authenticatedFetch(`/sprints/${sprintId}`, {
+			method: 'DELETE'
+		});
+	}
+
 	async getSprintsByTeamId(teamId) {
 		return this._authenticatedFetch(`/sprints/teams/${teamId}/sprints`);
 	}

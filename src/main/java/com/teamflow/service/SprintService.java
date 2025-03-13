@@ -34,6 +34,16 @@ public class SprintService {
 		sprint.setEndDate(LocalDateTime.now());
 		sprintRepository.save(sprint);
 	}
+	
+	public Sprint updateSprint(UUID sprintId, String name) {
+		Sprint sprint = sprintRepository.findById(sprintId).orElseThrow();
+		sprint.setName(name);
+		return sprintRepository.save(sprint);
+	}
+	
+	public void deleteSprint(UUID sprintId) {
+		sprintRepository.deleteById(sprintId);
+	}
 
 	public List<Sprint> getSprintsByTeamId(UUID teamId) {
 		return sprintRepository.findByTeam_Id(teamId);
