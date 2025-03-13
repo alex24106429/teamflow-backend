@@ -12,9 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Optional;
 
 @Service
 public class UserService implements UserDetailsService {
+    public Optional<User> getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;

@@ -1,7 +1,11 @@
 package com.teamflow.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -25,6 +29,10 @@ public class User {
     )
     private Collection<Role> roles;
 
+    @JsonIgnore
+    @ManyToMany(mappedBy = "members")
+    private List<Team> teams = new ArrayList<>();
+
     // Getters and setters
     public UUID getId() { return id; }
     public String getUsername() { return username; }
@@ -44,4 +52,7 @@ public class User {
     public void setAccountNonExpired(boolean accountNonExpired) { this.accountNonExpired = accountNonExpired; }
     public void setCredentialsNonExpired(boolean credentialsNonExpired) { this.credentialsNonExpired = credentialsNonExpired; }
     public void setAccountNonLocked(boolean accountNonLocked) { this.accountNonLocked = accountNonLocked; }
+    
+    public List<Team> getTeams() { return teams; }
+    public void setTeams(List<Team> teams) { this.teams = teams; }
 }
