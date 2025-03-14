@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/sprints")
+@RequestMapping("/api/sprints")
 public class SprintController {
     private final SprintService sprintService;
 

@@ -7,7 +7,7 @@ export class TeamFlowClient {
     
     // ==================== Authentication ====================
     async login(username, password) {
-        const response = await fetch(`${this.baseURL}/login`, {
+        const response = await fetch(`${this.baseURL}/api/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -21,7 +21,7 @@ export class TeamFlowClient {
     }
     
     async register(username, password) {
-        const response = await fetch(`${this.baseURL}/register`, {
+        const response = await fetch(`${this.baseURL}/api/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -42,23 +42,23 @@ export class TeamFlowClient {
     
     // ==================== Team Management ====================
     async createTeam(name) {
-        return this._authenticatedFetch('/teams', {
+        return this._authenticatedFetch('/api/teams', {
             method: 'POST',
             body: JSON.stringify({ name })
         });
     }
     
     async getTeam(teamId) {
-        return this._authenticatedFetch(`/teams/${teamId}`);
+        return this._authenticatedFetch(`/api/teams/${teamId}`);
     }
     
     async getAllTeams() {
-        return this._authenticatedFetch('/teams');
+        return this._authenticatedFetch('/api/teams');
     }
     
     // ==================== Sprint Management ====================
     async startSprint(teamId, name, startDate = new Date(), endDate = null) {
-        return this._authenticatedFetch(`/sprints/start`, {
+        return this._authenticatedFetch(`/api/sprints/start`, {
             method: 'POST',
             body: JSON.stringify({
                 teamId: teamId,
@@ -70,115 +70,115 @@ export class TeamFlowClient {
     }
     
     async stopSprint(sprintId) {
-        return this._authenticatedFetch(`/sprints/${sprintId}/stop`, {
+        return this._authenticatedFetch(`/api/sprints/${sprintId}/stop`, {
             method: 'POST'
         });
     }
     
     async updateSprint(sprintId, name) {
-        return this._authenticatedFetch(`/sprints/${sprintId}`, {
+        return this._authenticatedFetch(`/api/sprints/${sprintId}`, {
             method: 'PUT',
             body: JSON.stringify({ name })
         });
     }
     
     async deleteSprint(sprintId) {
-        return this._authenticatedFetch(`/sprints/${sprintId}`, {
+        return this._authenticatedFetch(`/api/sprints/${sprintId}`, {
             method: 'DELETE'
         });
     }
     
     async getSprintsByTeamId(teamId) {
-        return this._authenticatedFetch(`/sprints/teams/${teamId}/sprints`);
+        return this._authenticatedFetch(`/api/sprints/teams/${teamId}/sprints`);
     }
     
     async getMessages(sprintId) {
-        return this._authenticatedFetch(`/sprints/${sprintId}/messages`);
+        return this._authenticatedFetch(`/api/sprints/${sprintId}/messages`);
     }
     
     // ==================== Epic Management ====================
     async createEpic(teamId, epic) {
-        return this._authenticatedFetch(`/epics?teamId=${teamId}`, {
+        return this._authenticatedFetch(`/api/epics?teamId=${teamId}`, {
             method: 'POST',
             body: JSON.stringify(epic)
         });
     }
     
     async getEpicById(epicId) {
-        return this._authenticatedFetch(`/epics/${epicId}`);
+        return this._authenticatedFetch(`/api/epics/${epicId}`);
     }
     
     async getAllEpicsByTeamId(teamId) {
-        return this._authenticatedFetch(`/epics?teamId=${teamId}`);
+        return this._authenticatedFetch(`/api/epics?teamId=${teamId}`);
     }
     
     async updateEpic(epicId, epic) {
-        return this._authenticatedFetch(`/epics/${epicId}`, {
+        return this._authenticatedFetch(`/api/epics/${epicId}`, {
             method: 'PUT',
             body: JSON.stringify(epic)
         });
     }
     
     async deleteEpic(epicId) {
-        return this._authenticatedFetch(`/epics/${epicId}`, {
+        return this._authenticatedFetch(`/api/epics/${epicId}`, {
             method: 'DELETE'
         });
     }
     
     // ==================== User Story Management ====================
     async createUserStory(epicId, userStory) {
-        return this._authenticatedFetch(`/user-stories?epicId=${epicId}`, {
+        return this._authenticatedFetch(`/api/user-stories?epicId=${epicId}`, {
             method: 'POST',
             body: JSON.stringify(userStory)
         });
     }
     
     async getUserStoryById(userStoryId) {
-        return this._authenticatedFetch(`/user-stories/${userStoryId}`);
+        return this._authenticatedFetch(`/api/user-stories/${userStoryId}`);
     }
     
     async getAllUserStoriesByEpicId(epicId) {
-        return this._authenticatedFetch(`/user-stories?epicId=${epicId}`);
+        return this._authenticatedFetch(`/api/user-stories?epicId=${epicId}`);
     }
     
     async updateUserStory(userStoryId, userStory) {
-        return this._authenticatedFetch(`/user-stories/${userStoryId}`, {
+        return this._authenticatedFetch(`/api/user-stories/${userStoryId}`, {
             method: 'PUT',
             body: JSON.stringify(userStory)
         });
     }
     
     async deleteUserStory(userStoryId) {
-        return this._authenticatedFetch(`/user-stories/${userStoryId}`, {
+        return this._authenticatedFetch(`/api/user-stories/${userStoryId}`, {
             method: 'DELETE'
         });
     }
     
     // ==================== Task Management ====================
     async createTask(userStoryId, task) {
-        return this._authenticatedFetch(`/tasks?userStoryId=${userStoryId}`, {
+        return this._authenticatedFetch(`/api/tasks?userStoryId=${userStoryId}`, {
             method: 'POST',
             body: JSON.stringify(task)
         });
     }
     
     async getTaskById(taskId) {
-        return this._authenticatedFetch(`/tasks/${taskId}`);
+        return this._authenticatedFetch(`/api/tasks/${taskId}`);
     }
     
     async getAllTasksByUserStoryId(userStoryId) {
-        return this._authenticatedFetch(`/tasks?userStoryId=${userStoryId}`);
+        return this._authenticatedFetch(`/api/tasks?userStoryId=${userStoryId}`);
     }
     
     async updateTask(taskId, task) {
-        return this._authenticatedFetch(`/tasks/${taskId}`, {
+        return this._authenticatedFetch(`/api/tasks/${taskId}`, {
             method: 'PUT',
             body: JSON.stringify(task)
         });
     }
     
     async deleteTask(taskId) {
-        return this._authenticatedFetch(`/tasks/${taskId}`, {
+        return this._authenticatedFetch(`/api/tasks/${taskId}`, {
             method: 'DELETE'
         });
     }

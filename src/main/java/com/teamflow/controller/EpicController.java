@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/epics")
+@RequestMapping("/api/epics")
 public class EpicController {
 
     private final EpicService epicService;

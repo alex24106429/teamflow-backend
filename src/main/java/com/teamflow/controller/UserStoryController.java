@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/user-stories")
+@RequestMapping("/api/user-stories")
 public class UserStoryController {
 
     private final UserStoryService userStoryService;
