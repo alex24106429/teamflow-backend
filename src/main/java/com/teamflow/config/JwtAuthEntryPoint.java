@@ -11,11 +11,27 @@ import java.io.IOException;
 @Component
 public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
     @Override
-    public void commence(HttpServletRequest request, 
+    public void commence(HttpServletRequest request,
                          HttpServletResponse response,
-                         AuthenticationException authException) 
+                         AuthenticationException authException)
                          throws IOException {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, 
-                          "Unauthorized: " + authException.getMessage());
+        // Log the authentication failure
+        System.err.println("Authentication failed: " + authException.getMessage() +
+                          " for request: " + request.getRequestURI() +
+                          " from IP: " + request.getRemoteAddr());
+        
+        // Set content type for JSON response
+        response.setContentType("application/json");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        
+        // Create a more detailed error message
+        String errorMessage = String.format(
+            "{\"timestamp\":\"%s\",\"status\":401,\"error\":\"Unauthorized\",\"message\":\"%s\",\"path\":\"%s\"}",
+            java.time.LocalDateTime.now(),
+            authException.getMessage().replace("\"", "\\\""),
+            request.getRequestURI()
+        );
+        
+        response.getWriter().write(errorMessage);
     }
 }

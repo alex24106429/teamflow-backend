@@ -12,12 +12,17 @@ export class TeamFlowClient {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
-        if (!response.ok) throw new Error('Login failed');
-        const token = await response.text();
-        this.token = token;
-        localStorage.setItem('teamflow_token', token);
-        console.log('Login successful, token stored:', token);
-        return token;
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Login failed');
+        }
+        
+        const data = await response.json();
+        this.token = data.token;
+        localStorage.setItem('teamflow_token', data.token);
+        console.log('Login successful, token stored');
+        return data;
     }
     
     async register(username, password) {
@@ -26,12 +31,17 @@ export class TeamFlowClient {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
-        if (!response.ok) throw new Error('Registration failed');
-        const token = await response.text();
-        this.token = token;
-        localStorage.setItem('teamflow_token', token);
-        console.log('Registration successful, token stored:', token);
-        return token;
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Registration failed');
+        }
+        
+        const data = await response.json();
+        this.token = data.token;
+        localStorage.setItem('teamflow_token', data.token);
+        console.log('Registration successful, token stored');
+        return data;
     }
     
     logout() {
@@ -245,17 +255,45 @@ export class TeamFlowClient {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${this.token}`
         };
-        const response = await fetch(`${this.baseURL}${endpoint}`, {
-            ...options,
-            headers: { ...headers, ...options.headers }
-        });
-        if (!response.ok) {
-            const error = await response.text();
-            throw new Error(error);
+        
+        try {
+            const response = await fetch(`${this.baseURL}${endpoint}`, {
+                ...options,
+                headers: { ...headers, ...options.headers }
+            });
+            
+            if (response.status === 401) {
+                // Handle unauthorized - token might be invalid or expired
+                console.error('Authentication failed. Please log in again.');
+                this.logout();
+                
+                // Show login modal
+                document.getElementById('authModal').classList.add('active');
+                
+                throw new Error('Authentication failed. Please log in again.');
+            }
+            
+            if (!response.ok) {
+                let errorMessage;
+                try {
+                    // Try to parse as JSON first
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || 'An error occurred';
+                } catch (e) {
+                    // If not JSON, get as text
+                    errorMessage = await response.text();
+                }
+                throw new Error(errorMessage);
+            }
+            
+            if (response.status === 204) {
+                return null;
+            }
+            
+            return response.json();
+        } catch (error) {
+            console.error('API request failed:', error);
+            throw error;
         }
-        if (response.status === 204) {
-            return null;
-        }
-        return response.json();
     }
 }

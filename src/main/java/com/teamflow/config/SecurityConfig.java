@@ -11,16 +11,24 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import java.util.Arrays;
 
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthEntryPoint jwtAuthEntryPoint;
 
-    public SecurityConfig(@Lazy JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(
+            @Lazy JwtAuthenticationFilter jwtAuthenticationFilter,
+            JwtAuthEntryPoint jwtAuthEntryPoint) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.jwtAuthEntryPoint = jwtAuthEntryPoint;
     }
 
     @Bean
@@ -30,11 +38,19 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
+            .exceptionHandling(exception -> exception
+                    .authenticationEntryPoint(jwtAuthEntryPoint)
+            )
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/login", "/register", "/web/**", "/h2-console/**", "/chat/**", "/teams/**", "/**").permitAll()
+                    .requestMatchers("/api/login", "/api/register", "/web/**", "/h2-console/**", "/chat/**").permitAll()
+                    .requestMatchers("/api/**").authenticated()
                     .anyRequest().authenticated()
             )
+            .cors(cors -> cors.configure(http)) // Enable CORS
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // Allow frames for H2 console
+        http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
 
         return http.build();
     }
@@ -54,5 +70,20 @@ public class SecurityConfig {
                         .addResourceLocations("classpath:/web/");
             }
         };
+    }
+    
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

@@ -27,33 +27,45 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                loginRequest.getUsername(),
-                loginRequest.getPassword()
-            )
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        return jwtTokenProvider.generateToken(authentication);
+    public LoginResponse login(@RequestBody LoginRequest loginRequest) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getUsername(),
+                    loginRequest.getPassword()
+                )
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String token = jwtTokenProvider.generateToken(authentication);
+            return new LoginResponse(token, "Login successful");
+        } catch (Exception e) {
+            System.err.println("Login failed: " + e.getMessage());
+            throw e;
+        }
     }
 
     @PostMapping("/register")
-    public String register(@RequestBody RegisterRequest registerRequest) {
-        userService.createUser(
-            registerRequest.getUsername(),
-            registerRequest.getPassword()
-        );
-
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
+    public LoginResponse register(@RequestBody RegisterRequest registerRequest) {
+        try {
+            userService.createUser(
                 registerRequest.getUsername(),
                 registerRequest.getPassword()
-            )
-        );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        return jwtTokenProvider.generateToken(authentication);
+            );
+    
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    registerRequest.getUsername(),
+                    registerRequest.getPassword()
+                )
+            );
+    
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String token = jwtTokenProvider.generateToken(authentication);
+            return new LoginResponse(token, "Registration successful");
+        } catch (Exception e) {
+            System.err.println("Registration failed: " + e.getMessage());
+            throw e;
+        }
     }
 
     static class LoginRequest {
@@ -74,5 +86,20 @@ public class AuthController {
         public void setUsername(String username) { this.username = username; }
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
+    }
+    
+    static class LoginResponse {
+        private String token;
+        private String message;
+        
+        public LoginResponse(String token, String message) {
+            this.token = token;
+            this.message = message;
+        }
+        
+        public String getToken() { return token; }
+        public void setToken(String token) { this.token = token; }
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
     }
 }
