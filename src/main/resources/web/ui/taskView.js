@@ -13,29 +13,6 @@ export const renderTasks = () => {
         emptyState.className = 'empty-state';
         emptyState.textContent = 'No tasks yet';
         
-        // Add button to create task if we have a selected user story
-        if (userStories.length > 0) {
-            const createButton = document.createElement('button');
-            createButton.className = 'add-item-button';
-            createButton.innerHTML = '<i class="fas fa-plus"></i> Add Task';
-            
-            createButton.addEventListener('click', () => {
-                // Find the active user story
-                const activeUserStoryItem = document.querySelector('.channel-item.active');
-                if (activeUserStoryItem) {
-                    const userStoryName = activeUserStoryItem.querySelector('span').textContent;
-                    const userStory = userStories.find(us => us.name === userStoryName);
-                    if (userStory) {
-                        import('../services/taskService.js').then(module => {
-                            module.showCreateTaskModal(userStory.id);
-                        });
-                    }
-                }
-            });
-            
-            emptyState.appendChild(createButton);
-        }
-        
         tasksList.appendChild(emptyState);
         return;
     }
@@ -69,29 +46,6 @@ export const renderTasks = () => {
         
         tasksList.appendChild(taskItem);
     });
-    
-    // Add a button to create a new task
-    if (userStories.length > 0) {
-        const addTaskButton = document.createElement('div');
-        addTaskButton.className = 'add-item-button';
-        addTaskButton.innerHTML = '<i class="fas fa-plus"></i> Add Task';
-        
-        addTaskButton.addEventListener('click', () => {
-            // Find the active user story
-            const activeUserStoryItem = document.querySelector('.channel-item.active');
-            if (activeUserStoryItem) {
-                const userStoryName = activeUserStoryItem.querySelector('span').textContent;
-                const userStory = userStories.find(us => us.name === userStoryName);
-                if (userStory) {
-                    import('../services/taskService.js').then(module => {
-                        module.showCreateTaskModal(userStory.id);
-                    });
-                }
-            }
-        });
-        
-        tasksList.appendChild(addTaskButton);
-    }
 };
 
 // Show context menu for task
