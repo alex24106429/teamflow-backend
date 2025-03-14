@@ -3,44 +3,39 @@ package com.teamflow.service;
 import com.teamflow.model.Sprint;
 import com.teamflow.model.Team;
 import com.teamflow.repository.SprintRepository;
-import com.teamflow.repository.TeamRepository;
-import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.time.LocalDateTime;
+import org.springframework.stereotype.Service;
 
 @Service
 public class SprintServiceImpl implements SprintService {
 
     private final SprintRepository sprintRepository;
-    private final TeamRepository teamRepository;
 
-    public SprintServiceImpl(SprintRepository sprintRepository, TeamRepository teamRepository) {
+    public SprintServiceImpl(SprintRepository sprintRepository) {
         this.sprintRepository = sprintRepository;
-        this.teamRepository = teamRepository;
     }
 
     @Override
     public Sprint startSprint(UUID teamId, String name, LocalDateTime startDate, LocalDateTime endDate) {
-        if (endDate != null && endDate.isBefore(startDate)) {
-            throw new IllegalArgumentException("End date must be after start date");
-        }
-
-        Team team = teamRepository.findById(teamId)
-            .orElseThrow(() -> new RuntimeException("Team not found"));
-
         Sprint sprint = new Sprint();
+        Team team = new Team();
+        team.setId(teamId);
+        sprint.setTeam(team);
         sprint.setName(name);
         sprint.setStartDate(startDate);
         sprint.setEndDate(endDate);
-        sprint.setTeam(team);
-        
+        sprint.setActive(true);
         return sprintRepository.save(sprint);
     }
 
     @Override
     public void stopSprint(UUID sprintId) {
-        sprintRepository.deleteById(sprintId);
+        Sprint sprint = sprintRepository.findById(sprintId)
+            .orElseThrow(() -> new RuntimeException("Sprint not found"));
+        sprint.setActive(false);
+        sprintRepository.save(sprint);
     }
 
     @Override
@@ -58,6 +53,12 @@ public class SprintServiceImpl implements SprintService {
 
     @Override
     public List<Sprint> getSprintsByTeamId(UUID teamId) {
-        return sprintRepository.findByTeamId(teamId);
+        return sprintRepository.findByTeam_Id(teamId);
+    }
+
+    @Override
+    public Sprint getSprintById(UUID sprintId) {
+        return sprintRepository.findById(sprintId)
+            .orElseThrow(() -> new RuntimeException("Sprint not found"));
     }
 }

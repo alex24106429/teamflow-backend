@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import static java.util.stream.Collectors.toList;
 
-@RestController // Changed back to RestController for REST endpoint, and added @Controller for WebSocket
+@RestController
 @Controller
 @RequestMapping("/api/sprints/{sprintId}/messages")
 public class MessageController {
@@ -61,7 +61,6 @@ public class MessageController {
     @MessageMapping("/chat/{sprintId}")
     public void handleMessage(@DestinationVariable String sprintId, String messageContent) {
         try {
-            // For testing purposes, use a default user if authentication is not available
             User sender = userRepository.findByUsername("tester")
                     .orElseGet(() -> {
                         System.out.println("Using default user for testing");
@@ -69,17 +68,12 @@ public class MessageController {
                                 .orElseThrow(() -> new RuntimeException("No users found in the system"));
                     });
 
-            // Get sprint from repository
-            Sprint sprint = sprintService.getSprintById(sprintId)
-                .orElseThrow(() -> new RuntimeException("Sprint not found"));
+            Sprint sprint = sprintService.getSprintById(UUID.fromString(sprintId));
 
-            // Parse the message content from JSON
-            // The client sends: JSON.stringify({ content })
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(messageContent);
             String content = jsonNode.has("content") ? jsonNode.get("content").asText() : messageContent;
 
-            // Create and persist message
             Message message = new Message();
             message.setContent(new MessageContent(content));
             message.setSender(sender);
@@ -87,7 +81,6 @@ public class MessageController {
             message.setCreatedAt(LocalDateTime.now());
             Message savedMessage = messageService.saveMessage(message);
 
-            // Create DTO for broadcasting
             MessageDto messageDto = new MessageDto(
                 savedMessage.getId(),
                 savedMessage.getContent().getContent(),
@@ -96,7 +89,6 @@ public class MessageController {
                 savedMessage.getCreatedAt()
             );
 
-            // Broadcast to subscribers
             messagingTemplate.convertAndSend("/topic/chat/" + sprintId, messageDto);
         } catch (Exception e) {
             System.err.println("Error handling WebSocket message: " + e.getMessage());

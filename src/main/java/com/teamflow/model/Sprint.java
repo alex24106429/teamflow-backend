@@ -16,6 +16,14 @@ public class Sprint {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private String archivePath;
+    private boolean active;
+    
     @ManyToOne
+    @JoinColumn(name = "team_id")
     private Team team;
+    
+    // Helper method to get team ID
+    public UUID getTeamId() {
+        return team != null ? team.getId() : null;
+    }
 }

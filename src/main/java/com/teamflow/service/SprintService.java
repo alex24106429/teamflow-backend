@@ -11,4 +11,5 @@ public interface SprintService {
     Sprint updateSprint(UUID sprintId, String name);
     void deleteSprint(UUID sprintId);
     List<Sprint> getSprintsByTeamId(UUID teamId);
+    Sprint getSprintById(UUID sprintId);
 }
