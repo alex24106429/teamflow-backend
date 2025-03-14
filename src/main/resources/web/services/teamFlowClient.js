@@ -186,25 +186,27 @@ export class TeamFlowClient {
     // ==================== WebSocket Messaging ====================
     connectWebSocket(sprintId, messageCallback) {
         console.log('WebSocket token:', this.token);
-        const socket = new SockJS(`${this.baseURL}/chat`);
-        const client = Stomp.over(socket);
-        client.configure({
+        const socket = new window.SockJS(`${this.baseURL}/chat`);
+        // For StompJS v7, we need to use the Client class
+        const client = new window.StompJs.Client({
+            webSocketFactory: () => socket,
             connectHeaders: { 'Authorization': `Bearer ${this.token}` },
             debug: (str) => console.log(str),
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
+            onConnect: (frame) => {
+                client.subscribe(`/topic/chat/${sprintId}`, messageCallback);
+            },
+            onStompError: (frame) => {
+                console.error('Broker reported error: ' + frame.headers['message']);
+                console.error('Additional details: ' + frame.body);
+            },
+            onWebSocketClose: () => {
+                console.log('WebSocket closed');
+            }
         });
-        client.onConnect = (frame) => {
-            client.subscribe(`/topic/chat/${sprintId}`, messageCallback);
-        };
-        client.onStompError = (frame) => {
-            console.error('Broker reported error: ' + frame.headers['message']);
-            console.error('Additional details: ' + frame.body);
-        };
-        client.onWebSocketClose = () => {
-            console.log('WebSocket closed');
-        }
+        
         this.stompClient = client;
         client.activate();
     }
@@ -213,7 +215,8 @@ export class TeamFlowClient {
         if (!this.stompClient) throw new Error('WebSocket not connected');
         this.stompClient.publish({
             destination: `/app/chat/${sprintId}`,
-            body: JSON.stringify({ content })
+            body: JSON.stringify({ content }),
+            headers: { 'Authorization': `Bearer ${this.token}` }
         });
     }
     
