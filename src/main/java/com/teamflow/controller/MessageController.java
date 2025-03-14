@@ -59,14 +59,18 @@ public class MessageController {
     }
 
     @MessageMapping("/chat/{sprintId}")
-    public void handleMessage(@DestinationVariable String sprintId, String messageContent) {
+    public void handleMessage(@DestinationVariable String sprintId, String messageContent,
+                             org.springframework.messaging.simp.stomp.StompHeaderAccessor headerAccessor) {
         try {
-            User sender = userRepository.findByUsername("tester")
-                    .orElseGet(() -> {
-                        System.out.println("Using default user for testing");
-                        return userRepository.findAll().stream().findFirst()
-                                .orElseThrow(() -> new RuntimeException("No users found in the system"));
-                    });
+            // Get the authenticated user's username from the StompHeaderAccessor
+            String username = headerAccessor.getUser() != null ? headerAccessor.getUser().getName() : null;
+            
+            if (username == null) {
+                throw new RuntimeException("User not authenticated");
+            }
+            
+            User sender = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
             Sprint sprint = sprintService.getSprintById(UUID.fromString(sprintId));
 
