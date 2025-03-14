@@ -55,10 +55,15 @@ class TeamFlowClient {
 	}
 
 	// ==================== Sprint Management ====================
-	async startSprint(teamId, name) {
-		console.log('Starting sprint with teamId:', teamId);
-		return this._authenticatedFetch(`/sprints/start?teamId=${teamId}&name=${name}`, {
+	async startSprint(teamId, name, startDate, endDate) {
+		return this._authenticatedFetch(`/sprints/start`, {
 			method: 'POST',
+			body: JSON.stringify({
+				teamId: teamId,
+				name: name,
+				startDate: startDate.toISOString(),
+				endDate: endDate?.toISOString()
+			})
 		});
 	}
 
@@ -177,12 +182,11 @@ class TeamFlowClient {
 		});
 	}
 
-
 	// ==================== WebSocket Messaging ====================
 	connectWebSocket(sprintId, messageCallback) {
 		console.log('WebSocket token:', this.token);
 		const socket = new SockJS(`${this.baseURL}/chat`);
-		const client = StompJs.Stomp.over(socket)
+		const client = StompJs.Stomp.over(socket);
 
 		client.configure({
 			connectHeaders: { 'Authorization': `Bearer ${this.token}` },
@@ -225,6 +229,18 @@ class TeamFlowClient {
 	}
 
 	// ==================== Helper Methods ====================
+	formatSprintDate(dateString) {
+		if (!dateString) return 'No end date';
+		const options = { 
+			year: 'numeric', 
+			month: 'short', 
+			day: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
+		};
+		return new Date(dateString).toLocaleDateString('en-US', options);
+	}
+
 	async _authenticatedFetch(endpoint, options = {}) {
 		const headers = {
 			'Content-Type': 'application/json',
@@ -241,9 +257,8 @@ class TeamFlowClient {
 			throw new Error(error);
 		}
 
-		// Check if the response is 204 No Content
 		if (response.status === 204) {
-			return null; // Return null for No Content responses
+			return null;
 		}
 
 		return response.json();
@@ -257,20 +272,3 @@ class TeamFlowClient {
 }
 
 const client = new TeamFlowClient();
-
-// // Login
-// await client.login('username', 'password');
-
-// // Create team
-// const team = await client.createTeam({name: 'Dev Team'});
-
-// // Start sprint
-// // const sprint = await client.startSprint(team.id);
-
-// // Connect to chat
-// client.connectWebSocket(sprint.id, (message) => {
-//   console.log('New message:', JSON.parse(message.body));
-// });
-
-// // Send message
-// client.sendMessage(sprint.id, 'Hello team!');
