@@ -3,6 +3,10 @@ import { setSprints, setCurrentSprint, sprints, currentSprint, updateSprint as u
 import { renderSprints, updateSprintHeader } from '../ui/sprintView.js';
 import { loadUserStories } from './userStoryService.js';
 import { loadChatHistory } from '../ui/chatView.js';
+import { showEditSprintModal } from '../ui/modals/sprintModal.js';
+
+// Re-export the modal function for use in other modules
+export { showEditSprintModal };
 
 // Load sprints for a team
 export const loadSprints = async (teamId) => {

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @RestController
 @RequestMapping("/api/sprints")
@@ -21,10 +22,10 @@ public class SprintController {
     @PostMapping("/start")
     public Sprint startSprint(@RequestBody CreateSprintDto sprintDto) {
         return sprintService.startSprint(
-            sprintDto.getTeamId(), 
+            sprintDto.getTeamId(),
             sprintDto.getName(),
-            sprintDto.getStartDate(),
-            sprintDto.getEndDate()
+            sprintDto.getParsedStartDate(),
+            sprintDto.getParsedEndDate()
         );
     }
 
@@ -40,10 +41,21 @@ public class SprintController {
     
     @PutMapping("/{sprintId}/dates")
     public Sprint updateSprintDates(@PathVariable UUID sprintId, @RequestBody Map<String, String> payload) {
-        LocalDateTime startDate = payload.get("startDate") != null ?
-            LocalDateTime.parse(payload.get("startDate")) : null;
-        LocalDateTime endDate = payload.get("endDate") != null ?
-            LocalDateTime.parse(payload.get("endDate")) : null;
+        LocalDateTime startDate = null;
+        LocalDateTime endDate = null;
+        
+        if (payload.get("startDate") != null && !payload.get("startDate").isEmpty()) {
+            // Parse ISO date with timezone and convert to LocalDateTime
+            ZonedDateTime zonedStartDate = ZonedDateTime.parse(payload.get("startDate"));
+            startDate = zonedStartDate.toLocalDateTime();
+        }
+        
+        if (payload.get("endDate") != null && !payload.get("endDate").isEmpty()) {
+            // Parse ISO date with timezone and convert to LocalDateTime
+            ZonedDateTime zonedEndDate = ZonedDateTime.parse(payload.get("endDate"));
+            endDate = zonedEndDate.toLocalDateTime();
+        }
+        
         return sprintService.updateSprintDates(sprintId, startDate, endDate);
     }
 

@@ -48,13 +48,13 @@ export const showStartSprintModal = () => {
     startSprintModal.style.display = 'flex';
 };
 
-// Show rename sprint modal
-export const showRenameSprintModal = (sprint) => {
+// Show edit sprint modal
+export const showEditSprintModal = (sprint) => {
     // Create modal if it doesn't exist
-    let renameSprintModal = document.getElementById('renameSprintModal');
+    let renameSprintModal = document.getElementById('editSprintModal');
     if (!renameSprintModal) {
         renameSprintModal = document.createElement('div');
-        renameSprintModal.id = 'renameSprintModal';
+        renameSprintModal.id = 'editSprintModal';
         renameSprintModal.className = 'modal';
         renameSprintModal.innerHTML = `
             <div class="modal-content">
@@ -63,7 +63,7 @@ export const showRenameSprintModal = (sprint) => {
                     <span class="close-modal">&times;</span>
                 </div>
                 <div class="modal-body">
-                    <form id="renameSprintForm">
+                    <form id="editSprintForm">
                         <div class="form-group">
                             <label for="newSprintName">Sprint Name</label>
                             <input type="text" id="newSprintName" required>
@@ -89,7 +89,7 @@ export const showRenameSprintModal = (sprint) => {
         });
         
         // Add form submission handler
-        document.getElementById('renameSprintForm').addEventListener('submit', async (e) => {
+        document.getElementById('editSprintForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const newName = document.getElementById('newSprintName').value;
             if (!newName) return;

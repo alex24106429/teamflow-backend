@@ -64,7 +64,7 @@ export const showSprintContextMenu = (event, sprint) => {
     contextMenu.style.top = event.clientY + 'px';
     
     contextMenu.innerHTML = `
-        <div class="context-menu-item" id="renameSprint">Rename</div>
+        <div class="context-menu-item" id="editSprint">Edit Sprint</div>
         <div class="context-menu-item" id="deleteSprint">Delete</div>
     `;
     
@@ -73,8 +73,8 @@ export const showSprintContextMenu = (event, sprint) => {
     // Import these functions dynamically to avoid circular dependencies
     import('../services/sprintService.js').then(module => {
         // Event listeners for context menu items
-        document.getElementById('renameSprint').addEventListener('click', () => {
-            module.showRenameSprintModal(sprint);
+        document.getElementById('editSprint').addEventListener('click', () => {
+            module.showEditSprintModal(sprint);
             contextMenu.remove();
         });
         
