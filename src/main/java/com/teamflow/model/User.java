@@ -15,10 +15,15 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String username;
+    @JsonIgnore
     private String password;
+    @JsonIgnore
     private boolean enabled = true;
+    @JsonIgnore
     private boolean accountNonExpired = true;
+    @JsonIgnore
     private boolean credentialsNonExpired = true;
+    @JsonIgnore
     private boolean accountNonLocked = true;
 
     @ManyToMany(fetch = FetchType.EAGER)

@@ -1,7 +1,9 @@
 package com.teamflow.controller;
 
+import com.teamflow.dto.TeamDto;
 import com.teamflow.model.Team;
 import com.teamflow.service.TeamService;
+import com.teamflow.util.DtoConverter;
 import java.security.Principal;
 import org.springframework.web.bind.annotation.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,9 +24,10 @@ public class TeamController {
     }
 
     @PostMapping
-    public Team createTeam(@RequestBody Team team, Principal principal) {
+    public TeamDto createTeam(@RequestBody Team team, Principal principal) {
         User creator = getUserFromPrincipal(principal);
-        return teamService.createTeam(team, creator);
+        Team createdTeam = teamService.createTeam(team, creator);
+        return DtoConverter.convertToTeamDto(createdTeam);
     }
 
     private User getUserFromPrincipal(Principal principal) {
@@ -34,12 +37,14 @@ public class TeamController {
     }
 
     @GetMapping("/{teamId}")
-    public Team getTeam(@PathVariable UUID teamId) {
-        return teamService.getTeamById(teamId);
+    public TeamDto getTeam(@PathVariable UUID teamId) {
+        Team team = teamService.getTeamById(teamId);
+        return DtoConverter.convertToTeamDto(team);
     }
 
     @GetMapping
-    public List<Team> getAllTeams() {
-        return teamService.getAllTeams();
+    public List<TeamDto> getAllTeams() {
+        List<Team> teams = teamService.getAllTeams();
+        return DtoConverter.convertToTeamDtoList(teams);
     }
 }

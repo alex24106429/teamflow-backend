@@ -1,8 +1,10 @@
 package com.teamflow.controller;
 
+import com.teamflow.dto.SprintDto;
 import com.teamflow.model.Sprint;
 import com.teamflow.service.SprintService;
 import com.teamflow.dto.CreateSprintDto;
+import com.teamflow.util.DtoConverter;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
@@ -20,13 +22,14 @@ public class SprintController {
     }
 
     @PostMapping("/start")
-    public Sprint startSprint(@RequestBody CreateSprintDto sprintDto) {
-        return sprintService.startSprint(
+    public SprintDto startSprint(@RequestBody CreateSprintDto sprintDto) {
+        Sprint sprint = sprintService.startSprint(
             sprintDto.getTeamId(),
             sprintDto.getName(),
             sprintDto.getParsedStartDate(),
             sprintDto.getParsedEndDate()
         );
+        return DtoConverter.convertToSprintDto(sprint);
     }
 
     @PostMapping("/{sprintId}/stop")
@@ -35,12 +38,13 @@ public class SprintController {
     }
 
     @PutMapping("/{sprintId}")
-    public Sprint updateSprint(@PathVariable UUID sprintId, @RequestBody Map<String, String> payload) {
-        return sprintService.updateSprint(sprintId, payload.get("name"));
+    public SprintDto updateSprint(@PathVariable UUID sprintId, @RequestBody Map<String, String> payload) {
+        Sprint sprint = sprintService.updateSprint(sprintId, payload.get("name"));
+        return DtoConverter.convertToSprintDto(sprint);
     }
     
     @PutMapping("/{sprintId}/dates")
-    public Sprint updateSprintDates(@PathVariable UUID sprintId, @RequestBody Map<String, String> payload) {
+    public SprintDto updateSprintDates(@PathVariable UUID sprintId, @RequestBody Map<String, String> payload) {
         LocalDateTime startDate = null;
         LocalDateTime endDate = null;
         
@@ -56,7 +60,8 @@ public class SprintController {
             endDate = zonedEndDate.toLocalDateTime();
         }
         
-        return sprintService.updateSprintDates(sprintId, startDate, endDate);
+        Sprint sprint = sprintService.updateSprintDates(sprintId, startDate, endDate);
+        return DtoConverter.convertToSprintDto(sprint);
     }
 
     @DeleteMapping("/{sprintId}")
@@ -65,7 +70,8 @@ public class SprintController {
     }
 
     @GetMapping("/teams/{teamId}/sprints")
-    public List<Sprint> getSprintsByTeamId(@PathVariable UUID teamId) {
-        return sprintService.getSprintsByTeamId(teamId);
+    public List<SprintDto> getSprintsByTeamId(@PathVariable UUID teamId) {
+        List<Sprint> sprints = sprintService.getSprintsByTeamId(teamId);
+        return DtoConverter.convertToSprintDtoList(sprints);
     }
 }
