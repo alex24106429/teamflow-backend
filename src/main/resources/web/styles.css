@@ -582,6 +582,23 @@ body {
     position: relative;
 }
 
+/* Chat context styles */
+.chat-header-left i.fa-bookmark {
+    color: #ff9800; /* Orange for epics */
+}
+
+.chat-header-left i.fa-running {
+    color: #4caf50; /* Green for sprints */
+}
+
+.chat-header-left i.fa-book {
+    color: #2196f3; /* Blue for user stories */
+}
+
+.chat-header-left i.fa-tasks {
+    color: #9c27b0; /* Purple for tasks */
+}
+
 .chat-header {
     height: 48px;
     padding: 0 16px;

@@ -1,10 +1,19 @@
 import { client } from '../services/apiClient.js';
 import { currentSprint } from '../state/sprintState.js';
 import { currentUser } from '../state/userState.js';
+import { loadMessages, sendMessage, connectToMessageWebSocket, disconnectFromMessageWebSocket } from '../services/messageService.js';
 
 // DOM Elements
 const chatMessages = document.getElementById('chatMessages');
 const messageInput = document.getElementById('messageInput');
+const chatHeader = document.getElementById('chatHeader');
+
+// Current chat context
+let currentChatContext = {
+    id: null,
+    type: null,
+    name: null
+};
 
 // Display a chat message
 export const displayMessage = (message) => {
@@ -57,36 +66,100 @@ export const displayMessage = (message) => {
 };
 
 // Send message function
-export const sendMessage = () => {
-    if (!currentSprint) return;
+export const sendChatMessage = () => {
+    if (!currentChatContext.id) return;
     const content = messageInput.value.trim();
     if (!content) return;
     
-    client.sendMessage(currentSprint.id, content);
+    sendMessage(currentChatContext.id, currentChatContext.type, content);
     messageInput.value = '';
 };
 
-// Load chat history
-export const loadChatHistory = async () => {
-    if (!currentSprint) return;
+// Update chat header
+const updateChatHeader = () => {
+    if (!currentChatContext.id) return;
     
+    let icon = 'hashtag';
+    switch (currentChatContext.type) {
+        case 'EPIC':
+            icon = 'bookmark';
+            break;
+        case 'SPRINT':
+            icon = 'running';
+            break;
+        case 'USER_STORY':
+            icon = 'book';
+            break;
+        case 'TASK':
+            icon = 'tasks';
+            break;
+    }
+    
+    document.getElementById('currentSprintName').textContent = currentChatContext.name;
+    document.querySelector('.chat-header-left i').className = `fas fa-${icon}`;
+};
+
+// Load chat history for any context
+export const loadChatHistory = async (contextId, contextType, contextName) => {
+    if (!contextId) return;
+    
+    // Disconnect from previous WebSocket if any
+    disconnectFromMessageWebSocket();
+    
+    // Update current context
+    currentChatContext = {
+        id: contextId,
+        type: contextType,
+        name: contextName
+    };
+    
+    // Update chat header
+    updateChatHeader();
+    
+    // Clear previous messages
     chatMessages.innerHTML = '';
     
     try {
         // Load historical messages
-        const messages = await client.getMessages(currentSprint.id);
+        const messages = await loadMessages(contextId, contextType);
         messages.forEach(message => displayMessage(message));
         
         // Connect to WebSocket for real-time updates
-        client.connectWebSocket(currentSprint.id, (message) => {
-            displayMessage(JSON.parse(message.body));
-        });
+        connectToMessageWebSocket(contextId, contextType);
+        
+        // Update welcome message
+        const welcomeMessage = document.createElement('div');
+        welcomeMessage.className = 'welcome-message';
+        welcomeMessage.innerHTML = `
+            <h2>Welcome to ${contextName} Chat!</h2>
+            <p>This is the beginning of your ${contextType.toLowerCase()} discussion.</p>
+        `;
+        
+        if (chatMessages.children.length === 0) {
+            chatMessages.appendChild(welcomeMessage);
+        }
     } catch (error) {
-        console.error('Failed to load messages:', error);
+        console.error(`Failed to load ${contextType} messages:`, error);
         chatMessages.innerHTML = `
             <div class="error-message">
                 Failed to load messages: ${error.message}
             </div>
         `;
     }
+};
+
+// Load sprint chat (backward compatibility)
+export const loadSprintChat = async () => {
+    if (!currentSprint) return;
+    await loadChatHistory(currentSprint.id, 'SPRINT', currentSprint.name);
+};
+
+// Initialize event listeners
+export const initChatView = () => {
+    // Set up message input event listener
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendChatMessage();
+        }
+    });
 };

@@ -1,6 +1,8 @@
 import { userStories } from '../state/userStoryState.js';
 import { currentSprint } from '../state/sprintState.js';
 import { selectUserStory } from '../services/userStoryService.js';
+import { loadChatHistory } from './chatView.js';
+import { showChatView } from './viewManager.js';
 
 // DOM Elements
 const userStoriesList = document.getElementById('userStoriesList');
@@ -36,11 +38,13 @@ export const renderUserStories = () => {
     userStories.forEach(userStory => {
         const userStoryItem = document.createElement('div');
         userStoryItem.className = 'channel-item';
-        userStoryItem.innerHTML = `<i class="fas fa-list"></i> <span>${userStory.name}</span>`;
+        userStoryItem.innerHTML = `<i class="fas fa-book"></i> <span>${userStory.name}</span>`;
         
-        // Add click handler to select user story and load its tasks
+        // Add click handler to open user story chat
         userStoryItem.addEventListener('click', () => {
             selectUserStory(userStory);
+            showChatView();
+            loadChatHistory(userStory.id, 'USER_STORY', userStory.name);
         });
         
         // Add context menu for user story
@@ -78,12 +82,21 @@ export const showUserStoryContextMenu = (event, userStory) => {
     contextMenu.style.top = event.clientY + 'px';
     
     contextMenu.innerHTML = `
+        <div class="context-menu-item" id="openUserStoryChat">Open Chat</div>
         <div class="context-menu-item" id="editUserStory">Edit</div>
         <div class="context-menu-item" id="deleteUserStory">Delete</div>
         <div class="context-menu-item" id="addTask">Add Task</div>
     `;
     
     document.body.appendChild(contextMenu);
+    
+    // Open user story chat
+    document.getElementById('openUserStoryChat').addEventListener('click', () => {
+        selectUserStory(userStory);
+        showChatView();
+        loadChatHistory(userStory.id, 'USER_STORY', userStory.name);
+        contextMenu.remove();
+    });
     
     // Import these functions dynamically to avoid circular dependencies
     import('../services/userStoryService.js').then(module => {

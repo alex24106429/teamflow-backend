@@ -22,6 +22,21 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    public List<Message> findByEpicId(UUID epicId) {
+        return messageRepository.findByEpicId(epicId);
+    }
+
+    @Override
+    public List<Message> findByUserStoryId(UUID userStoryId) {
+        return messageRepository.findByUserStoryId(userStoryId);
+    }
+
+    @Override
+    public List<Message> findByTaskId(UUID taskId) {
+        return messageRepository.findByTaskId(taskId);
+    }
+
+    @Override
     public Message saveMessage(Message message) {
         // Set createdAt if not already set
         if (message.getCreatedAt() == null) {

@@ -1,6 +1,8 @@
 import { sprints, currentSprint } from '../state/sprintState.js';
 import { selectSprint } from '../services/sprintService.js';
 import { client } from '../services/apiClient.js';
+import { loadChatHistory } from './chatView.js';
+import { showChatView } from './viewManager.js';
 
 // DOM Elements
 const sprintsList = document.getElementById('sprintsList');
@@ -27,7 +29,7 @@ export const renderSprints = () => {
         const endDateStr = sprint.endDate ? client.formatSprintDate(sprint.endDate) : 'Not set';
         
         sprintItem.innerHTML = `
-            <i class="fas fa-hashtag"></i>
+            <i class="fas fa-running"></i>
             <span>${sprint.name}</span>
             <div class="sprint-dates">
                 <small title="Start: ${startDateStr} - End: ${endDateStr}">
@@ -42,6 +44,8 @@ export const renderSprints = () => {
         
         sprintItem.addEventListener('click', () => {
             selectSprint(sprint);
+            showChatView();
+            loadChatHistory(sprint.id, 'SPRINT', sprint.name);
         });
         
         // Add context menu for sprint channels
@@ -64,11 +68,20 @@ export const showSprintContextMenu = (event, sprint) => {
     contextMenu.style.top = event.clientY + 'px';
     
     contextMenu.innerHTML = `
+        <div class="context-menu-item" id="openSprintChat">Open Chat</div>
         <div class="context-menu-item" id="editSprint">Edit Sprint</div>
         <div class="context-menu-item" id="deleteSprint">Delete</div>
     `;
     
     document.body.appendChild(contextMenu);
+    
+    // Open sprint chat
+    document.getElementById('openSprintChat').addEventListener('click', () => {
+        selectSprint(sprint);
+        showChatView();
+        loadChatHistory(sprint.id, 'SPRINT', sprint.name);
+        contextMenu.remove();
+    });
     
     // Import these functions dynamically to avoid circular dependencies
     import('../services/sprintService.js').then(module => {

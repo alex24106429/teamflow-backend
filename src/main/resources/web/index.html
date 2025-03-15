@@ -237,7 +237,7 @@
             <!-- Chat View -->
             <div class="chat-area" id="chatView">
                 <div class="chat-header">
-                    <div class="chat-header-left">
+                    <div class="chat-header-left" id="chatHeader">
                         <i class="fas fa-hashtag"></i>
                         <h3 id="currentSprintName">sprint-name</h3>
                     </div>
@@ -250,10 +250,7 @@
                 
                 <div class="chat-messages" id="chatMessages">
                     <!-- Messages will be added here -->
-                    <div class="welcome-message">
-                        <h2>Welcome to Sprint Chat!</h2>
-                        <p>This is the beginning of your sprint discussion.</p>
-                    </div>
+                    <!-- Welcome message will be dynamically generated -->
                 </div>
                 
                 <div class="message-input-container">

@@ -4,7 +4,7 @@ import { clearTeamState } from '../state/teamState.js';
 import { clearSprintState } from '../state/sprintState.js';
 import { clearEpicState } from '../state/epicState.js';
 import { showAuth, showHomeView, showChatView } from './viewManager.js';
-import { sendMessage } from './chatView.js';
+import { sendChatMessage, initChatView } from './chatView.js';
 import { showCreateTeamModal } from './modals/teamModal.js';
 import { showStartSprintModal } from './modals/sprintModal.js';
 import { showCreateEpicModal } from './modals/epicModal.js';
@@ -43,6 +43,9 @@ export const initEventListeners = () => {
     initUserStoryModal();
     initTaskModal();
     
+    // Initialize chat view
+    initChatView();
+    
     // Handle logout
     logoutBtn.addEventListener('click', () => {
         client.logout();
@@ -77,7 +80,7 @@ export const initEventListeners = () => {
     messageInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessage();
+            sendChatMessage();
         }
     });
     

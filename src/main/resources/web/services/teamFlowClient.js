@@ -112,8 +112,21 @@ export class TeamFlowClient {
         return this._authenticatedFetch(`/api/sprints/teams/${teamId}/sprints`);
     }
     
-    async getMessages(sprintId) {
+    // ==================== Message Management ====================
+    async getSprintMessages(sprintId) {
         return this._authenticatedFetch(`/api/sprints/${sprintId}/messages`);
+    }
+    
+    async getEpicMessages(epicId) {
+        return this._authenticatedFetch(`/api/epics/${epicId}/messages`);
+    }
+    
+    async getUserStoryMessages(userStoryId) {
+        return this._authenticatedFetch(`/api/user-stories/${userStoryId}/messages`);
+    }
+    
+    async getTaskMessages(taskId) {
+        return this._authenticatedFetch(`/api/tasks/${taskId}/messages`);
     }
     
     // ==================== Epic Management ====================
@@ -204,7 +217,7 @@ export class TeamFlowClient {
     }
     
     // ==================== WebSocket Messaging ====================
-    connectWebSocket(sprintId, messageCallback) {
+    connectWebSocket(contextId, contextType, messageCallback) {
         console.log('WebSocket token:', this.token);
         const socket = new window.SockJS(`${this.baseURL}/chat`);
         // For StompJS v7, we need to use the Client class
@@ -216,7 +229,7 @@ export class TeamFlowClient {
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
             onConnect: (frame) => {
-                client.subscribe(`/topic/chat/${sprintId}`, messageCallback);
+                client.subscribe(`/topic/chat/${contextType}/${contextId}`, messageCallback);
             },
             onStompError: (frame) => {
                 console.error('Broker reported error: ' + frame.headers['message']);
@@ -231,13 +244,46 @@ export class TeamFlowClient {
         client.activate();
     }
     
-    sendMessage(sprintId, content) {
+    sendMessage(contextId, contextType, content) {
         if (!this.stompClient) throw new Error('WebSocket not connected');
         this.stompClient.publish({
-            destination: `/app/chat/${sprintId}`,
+            destination: `/app/chat/${contextType}/${contextId}`,
             body: JSON.stringify({ content }),
             headers: { 'Authorization': `Bearer ${this.token}` }
         });
+    }
+    
+    // Backward compatibility methods
+    connectToSprintChat(sprintId, messageCallback) {
+        this.connectWebSocket(sprintId, 'sprint', messageCallback);
+    }
+    
+    connectToEpicChat(epicId, messageCallback) {
+        this.connectWebSocket(epicId, 'epic', messageCallback);
+    }
+    
+    connectToUserStoryChat(userStoryId, messageCallback) {
+        this.connectWebSocket(userStoryId, 'user-story', messageCallback);
+    }
+    
+    connectToTaskChat(taskId, messageCallback) {
+        this.connectWebSocket(taskId, 'task', messageCallback);
+    }
+    
+    sendSprintMessage(sprintId, content) {
+        this.sendMessage(sprintId, 'sprint', content);
+    }
+    
+    sendEpicMessage(epicId, content) {
+        this.sendMessage(epicId, 'epic', content);
+    }
+    
+    sendUserStoryMessage(userStoryId, content) {
+        this.sendMessage(userStoryId, 'user-story', content);
+    }
+    
+    sendTaskMessage(taskId, content) {
+        this.sendMessage(taskId, 'task', content);
     }
     
     disconnectWebSocket() {

@@ -1,5 +1,7 @@
 import { epics, selectedEpic } from '../state/epicState.js';
 import { selectEpic } from '../services/epicService.js';
+import { loadChatHistory } from './chatView.js';
+import { showChatView } from './viewManager.js';
 
 // DOM Elements
 const epicsList = document.getElementById('epicsList');
@@ -27,16 +29,11 @@ export const renderEpics = () => {
         
         epicItem.innerHTML = `<i class="fas fa-bookmark"></i> <span>${epic.name}</span>`; // Using bookmark icon for epics
         
-        // Add click handler to select/deselect epic
+        // Add click handler to open epic chat
         epicItem.addEventListener('click', () => {
-            if (selectedEpic && selectedEpic.id === epic.id) {
-                // Deselect if already selected
-                selectEpic(null);
-                epicItem.classList.remove('selected-epic');
-            } else {
-                // Select this epic
-                selectEpic(epic);
-            }
+            selectEpic(epic);
+            showChatView();
+            loadChatHistory(epic.id, 'EPIC', epic.name);
         });
         
         // Add context menu for edit/delete
@@ -59,11 +56,20 @@ export const showEpicContextMenu = (event, epic) => {
     contextMenu.style.top = event.clientY + 'px';
     
     contextMenu.innerHTML = `
+        <div class="context-menu-item" id="openEpicChat">Open Chat</div>
         <div class="context-menu-item" id="editEpic">Edit</div>
         <div class="context-menu-item" id="deleteEpic">Delete</div>
     `;
     
     document.body.appendChild(contextMenu);
+    
+    // Open epic chat
+    document.getElementById('openEpicChat').addEventListener('click', () => {
+        selectEpic(epic);
+        showChatView();
+        loadChatHistory(epic.id, 'EPIC', epic.name);
+        contextMenu.remove();
+    });
     
     // Import these functions dynamically to avoid circular dependencies
     import('../services/epicService.js').then(module => {

@@ -1,5 +1,7 @@
 import { tasks } from '../state/taskState.js';
 import { userStories } from '../state/userStoryState.js';
+import { loadChatHistory } from './chatView.js';
+import { showChatView } from './viewManager.js';
 
 // DOM Elements
 const tasksList = document.getElementById('tasksList');
@@ -38,6 +40,12 @@ export const renderTasks = () => {
             <span class="task-status ${statusClass}"><i class="fas ${statusIcon}"></i></span>
         `;
         
+        // Add click handler to open task chat
+        taskItem.addEventListener('click', () => {
+            showChatView();
+            loadChatHistory(task.id, 'TASK', task.name);
+        });
+        
         // Add context menu for task
         taskItem.addEventListener('contextmenu', (event)=> {
             event.preventDefault();
@@ -58,6 +66,7 @@ export const showTaskContextMenu = (event, task) => {
     contextMenu.style.top = event.clientY + 'px';
     
     contextMenu.innerHTML = `
+        <div class="context-menu-item" id="openTaskChat">Open Chat</div>
         <div class="context-menu-item" id="editTask">Edit</div>
         <div class="context-menu-item" id="deleteTask">Delete</div>
         <div class="context-menu-header">Change Status</div>
@@ -67,6 +76,13 @@ export const showTaskContextMenu = (event, task) => {
     `;
     
     document.body.appendChild(contextMenu);
+    
+    // Open task chat
+    document.getElementById('openTaskChat').addEventListener('click', () => {
+        showChatView();
+        loadChatHistory(task.id, 'TASK', task.name);
+        contextMenu.remove();
+    });
     
     // Import these functions dynamically to avoid circular dependencies
     import('../services/taskService.js').then(module => {
