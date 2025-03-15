@@ -886,6 +886,19 @@ body {
     line-height: 1.4;
 }
 
+/* Sprint Date Styles */
+.sprint-dates {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--light-tertiary);
+}
+
+.sprint-date-info {
+    font-size: 12px;
+    color: var(--light-tertiary);
+    margin-left: 8px;
+}
+
 /* Task Status Styles */
 .task-status {
     margin-left: auto;

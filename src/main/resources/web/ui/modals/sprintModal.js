@@ -17,12 +17,22 @@ export const initSprintModal = () => {
         if (!sprintName) return;
         
         try {
-            const sprint = await client.startSprint(currentTeam.id, sprintName);
+            const startDateInput = document.getElementById('sprintStartDate').value;
+            const endDateInput = document.getElementById('sprintEndDate').value;
+            
+            const startDate = startDateInput ? new Date(startDateInput) : new Date();
+            const endDate = endDateInput ? new Date(endDateInput) : null;
+            
+            const sprint = await client.startSprint(currentTeam.id, sprintName, startDate, endDate);
             addSprint(sprint);
             renderSprints();
             selectSprint(sprint);
             startSprintModal.style.display = 'none';
-            document.getElementById('sprintName').value = ''; // Clear the input
+            
+            // Clear the inputs
+            document.getElementById('sprintName').value = '';
+            document.getElementById('sprintStartDate').value = '';
+            document.getElementById('sprintEndDate').value = '';
         } catch (error) {
             alert('Failed to start sprint: ' + error.message);
         }
@@ -49,7 +59,7 @@ export const showRenameSprintModal = (sprint) => {
         renameSprintModal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>Rename Sprint</h2>
+                    <h2>Edit Sprint</h2>
                     <span class="close-modal">&times;</span>
                 </div>
                 <div class="modal-body">
@@ -58,7 +68,15 @@ export const showRenameSprintModal = (sprint) => {
                             <label for="newSprintName">Sprint Name</label>
                             <input type="text" id="newSprintName" required>
                         </div>
-                        <button type="submit" class="modal-button">Rename</button>
+                        <div class="form-group">
+                            <label for="newSprintStartDate">Start Date</label>
+                            <input type="datetime-local" id="newSprintStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="newSprintEndDate">End Date</label>
+                            <input type="datetime-local" id="newSprintEndDate">
+                        </div>
+                        <button type="submit" class="modal-button">Update Sprint</button>
                     </form>
                 </div>
             </div>
@@ -77,7 +95,28 @@ export const showRenameSprintModal = (sprint) => {
             if (!newName) return;
             
             try {
+                // First update the name
                 const updatedSprint = await client.updateSprint(window.currentRenamingSprint.id, newName);
+                
+                // Then update the dates if provided
+                const startDateInput = document.getElementById('newSprintStartDate').value;
+                const endDateInput = document.getElementById('newSprintEndDate').value;
+                
+                if (startDateInput || endDateInput) {
+                    const startDate = startDateInput ? new Date(startDateInput) : null;
+                    const endDate = endDateInput ? new Date(endDateInput) : null;
+                    
+                    // Update dates using the new endpoint
+                    const sprintWithDates = await client.updateSprintDates(
+                        window.currentRenamingSprint.id,
+                        startDate,
+                        endDate
+                    );
+                    
+                    // Merge the updated sprint with the dates
+                    Object.assign(updatedSprint, sprintWithDates);
+                }
+                
                 // Update sprint in the sprints array
                 import('../../services/sprintService.js').then(module => {
                     module.updateSprintState(updatedSprint);
@@ -85,7 +124,7 @@ export const showRenameSprintModal = (sprint) => {
                 
                 renameSprintModal.style.display = 'none';
             } catch (error) {
-                alert('Failed to rename sprint: ' + error.message);
+                alert('Failed to update sprint: ' + error.message);
             }
         });
     }
@@ -93,8 +132,21 @@ export const showRenameSprintModal = (sprint) => {
     // Set current sprint being renamed
     window.currentRenamingSprint = sprint;
     
-    // Set current value in the input
+    // Set current values in the inputs
     document.getElementById('newSprintName').value = sprint.name;
+    
+    // Format dates for datetime-local input (YYYY-MM-DDThh:mm)
+    if (sprint.startDate) {
+        const startDate = new Date(sprint.startDate);
+        const formattedStartDate = startDate.toISOString().slice(0, 16);
+        document.getElementById('newSprintStartDate').value = formattedStartDate;
+    }
+    
+    if (sprint.endDate) {
+        const endDate = new Date(sprint.endDate);
+        const formattedEndDate = endDate.toISOString().slice(0, 16);
+        document.getElementById('newSprintEndDate').value = formattedEndDate;
+    }
     
     // Show the modal
     renameSprintModal.style.display = 'flex';

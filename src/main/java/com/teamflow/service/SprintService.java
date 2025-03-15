@@ -9,6 +9,7 @@ public interface SprintService {
     Sprint startSprint(UUID teamId, String name, LocalDateTime startDate, LocalDateTime endDate);
     void stopSprint(UUID sprintId);
     Sprint updateSprint(UUID sprintId, String name);
+    Sprint updateSprintDates(UUID sprintId, LocalDateTime startDate, LocalDateTime endDate);
     void deleteSprint(UUID sprintId);
     List<Sprint> getSprintsByTeamId(UUID teamId);
     Sprint getSprintById(UUID sprintId);

@@ -45,6 +45,15 @@ public class SprintServiceImpl implements SprintService {
         sprint.setName(name);
         return sprintRepository.save(sprint);
     }
+    
+    @Override
+    public Sprint updateSprintDates(UUID sprintId, LocalDateTime startDate, LocalDateTime endDate) {
+        Sprint sprint = sprintRepository.findById(sprintId)
+            .orElseThrow(() -> new RuntimeException("Sprint not found"));
+        sprint.setStartDate(startDate);
+        sprint.setEndDate(endDate);
+        return sprintRepository.save(sprint);
+    }
 
     @Override
     public void deleteSprint(UUID sprintId) {

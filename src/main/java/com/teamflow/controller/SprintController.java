@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/sprints")
@@ -35,6 +36,15 @@ public class SprintController {
     @PutMapping("/{sprintId}")
     public Sprint updateSprint(@PathVariable UUID sprintId, @RequestBody Map<String, String> payload) {
         return sprintService.updateSprint(sprintId, payload.get("name"));
+    }
+    
+    @PutMapping("/{sprintId}/dates")
+    public Sprint updateSprintDates(@PathVariable UUID sprintId, @RequestBody Map<String, String> payload) {
+        LocalDateTime startDate = payload.get("startDate") != null ?
+            LocalDateTime.parse(payload.get("startDate")) : null;
+        LocalDateTime endDate = payload.get("endDate") != null ?
+            LocalDateTime.parse(payload.get("endDate")) : null;
+        return sprintService.updateSprintDates(sprintId, startDate, endDate);
     }
 
     @DeleteMapping("/{sprintId}")

@@ -1,5 +1,6 @@
 import { sprints, currentSprint } from '../state/sprintState.js';
 import { selectSprint } from '../services/sprintService.js';
+import { client } from '../services/apiClient.js';
 
 // DOM Elements
 const sprintsList = document.getElementById('sprintsList');
@@ -20,7 +21,20 @@ export const renderSprints = () => {
     sprints.forEach(sprint => {
         const sprintItem = document.createElement('div');
         sprintItem.className = 'channel-item';
-        sprintItem.innerHTML = `<i class="fas fa-hashtag"></i> <span>${sprint.name}</span>`;
+        
+        // Format dates using the client's formatSprintDate helper
+        const startDateStr = sprint.startDate ? client.formatSprintDate(sprint.startDate) : 'Not set';
+        const endDateStr = sprint.endDate ? client.formatSprintDate(sprint.endDate) : 'Not set';
+        
+        sprintItem.innerHTML = `
+            <i class="fas fa-hashtag"></i>
+            <span>${sprint.name}</span>
+            <div class="sprint-dates">
+                <small title="Start: ${startDateStr} - End: ${endDateStr}">
+                    ${sprint.startDate ? '📅' : ''}
+                </small>
+            </div>
+        `;
         
         if (currentSprint && sprint.id === currentSprint.id) {
             sprintItem.classList.add('active');
@@ -82,7 +96,17 @@ export const showSprintContextMenu = (event, sprint) => {
 // Update sprint header
 export const updateSprintHeader = () => {
     if (currentSprint) {
-        currentSprintName.textContent = currentSprint.name;
+        // Format dates
+        const startDateStr = currentSprint.startDate ? client.formatSprintDate(currentSprint.startDate) : 'Not set';
+        const endDateStr = currentSprint.endDate ? client.formatSprintDate(currentSprint.endDate) : 'Not set';
+        
+        // Update header with name and dates
+        currentSprintName.innerHTML = `
+            ${currentSprint.name}
+            <span class="sprint-date-info">
+                ${currentSprint.startDate ? `📅 ${startDateStr} - ${endDateStr}` : ''}
+            </span>
+        `;
     } else {
         currentSprintName.textContent = '';
     }

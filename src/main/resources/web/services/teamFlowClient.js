@@ -92,6 +92,16 @@ export class TeamFlowClient {
         });
     }
     
+    async updateSprintDates(sprintId, startDate, endDate) {
+        return this._authenticatedFetch(`/api/sprints/${sprintId}/dates`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                startDate: startDate?.toISOString(),
+                endDate: endDate?.toISOString()
+            })
+        });
+    }
+    
     async deleteSprint(sprintId) {
         return this._authenticatedFetch(`/api/sprints/${sprintId}`, {
             method: 'DELETE'
