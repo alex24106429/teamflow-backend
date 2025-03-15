@@ -42,7 +42,7 @@ public class SecurityConfig {
                     .authenticationEntryPoint(jwtAuthEntryPoint)
             )
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/login", "/api/register", "/web/**", "/h2-console/**", "/chat/**").permitAll()
+                    .requestMatchers("/api/login", "/api/register", "/app/**", "/h2-console/**", "/chat/**").permitAll()
                     .requestMatchers("/api/**").authenticated()
                     .anyRequest().authenticated()
             )
@@ -66,8 +66,13 @@ public class SecurityConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addResourceHandlers(ResourceHandlerRegistry registry) {
-                registry.addResourceHandler("/web/**")
+                registry.addResourceHandler("/app/**")
                         .addResourceLocations("classpath:/web/");
+            }
+            
+            @Override
+            public void addViewControllers(org.springframework.web.servlet.config.annotation.ViewControllerRegistry registry) {
+                registry.addViewController("/app").setViewName("forward:/app/index.html");
             }
         };
     }
