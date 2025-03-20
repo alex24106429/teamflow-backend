@@ -238,10 +238,7 @@ Controllers handelen inkomende HTTP requests en WebSocket berichten af, delegere
     *   `/api/user-stories/{userStoryId}/messages` (GET): Haalt berichten op voor een user story.
     *   `/api/tasks/{taskId}/messages` (GET): Haalt berichten op voor een taak.
     *   WebSocket Message Handlers:
-        *   `/app/chat/sprint/{sprintId}`: Handelt inkomende chatberichten af voor sprints.
-        *   `/app/chat/epic/{epicId}`: Handelt inkomende chatberichten af voor epics.
-        *   `/app/chat/user-story/{userStoryId}`: Handelt inkomende chatberichten af voor user stories.
-        *   `/app/chat/task/{taskId}`: Handelt inkomende chatberichten af voor taken.
+        *   `/chat`: Handelt inkomende chatberichten af.
 
 ## 7. Overzicht van Services <a name="overzicht-van-services-backend"></a>
 
