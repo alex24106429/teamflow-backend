@@ -70,7 +70,7 @@ Voordat je begint, zorg ervoor dat je het volgende hebt geïnstalleerd:
 
 1.  **Clone de repository:**
     ```bash
-    git clone https://github.com/alex24106429/scrumchat-backend
+    git clone https://github.com/alex24106429/teamflow-backend
     cd scrumchat-backend
     ```
 
