@@ -9,6 +9,11 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.web.socket.WebSocketHandler;
+import java.util.Map;
+import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -28,6 +33,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/chat")
                 .setAllowedOriginPatterns("http://localhost:5173")
+                .addInterceptors(new HandshakeInterceptor() {
+                    @Override
+                    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
+                        String origin = request.getHeaders().getOrigin();
+                        if (origin == null || !origin.equals("http://localhost:5173")) {
+                            System.out.println("Handshake rejected due to invalid origin: " + origin);
+                            return false;
+                        }
+                        return true;
+                    }
+
+                    @Override
+                    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
+                    }
+                })
                 .withSockJS();
     }
 
