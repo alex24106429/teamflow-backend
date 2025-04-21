@@ -33,21 +33,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/chat")
                 .setAllowedOriginPatterns("http://localhost:5173")
-                .addInterceptors(new HandshakeInterceptor() {
-                    @Override
-                    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
-                        String origin = request.getHeaders().getOrigin();
-                        if (origin == null || !origin.equals("http://localhost:5173")) {
-                            System.out.println("Handshake rejected due to invalid origin: " + origin);
-                            return false;
-                        }
-                        return true;
-                    }
-
-                    @Override
-                    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
-                    }
-                })
+                // Removed custom HandshakeInterceptor, relying on setAllowedOriginPatterns
                 .withSockJS();
     }
 
