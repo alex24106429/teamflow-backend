@@ -1,6 +1,5 @@
 package com.teamflow.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teamflow.dto.MessageDto;
 import com.teamflow.dto.UserDto;
@@ -9,6 +8,7 @@ import com.teamflow.repository.UserRepository;
 import com.teamflow.service.*;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload; // Import Payload annotation
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.Map; // Import Map
 import static java.util.stream.Collectors.toList;
 
 @RestController
@@ -119,25 +120,24 @@ public class MessageController {
 
     // WebSocket handlers
     @MessageMapping("/chat/sprint/{sprintId}")
-    public void handleSprintMessage(@DestinationVariable String sprintId, String messageContent,
+    public void handleSprintMessage(@DestinationVariable String sprintId,
+                             @Payload Map<String, String> payload, // Change parameter type and add @Payload
                              org.springframework.messaging.simp.stomp.StompHeaderAccessor headerAccessor) {
         try {
             // Get the authenticated user's username from the StompHeaderAccessor
             String username = headerAccessor.getUser() != null ? headerAccessor.getUser().getName() : null;
-            
+
             if (username == null) {
                 throw new RuntimeException("User not authenticated");
             }
-            
+
             User sender = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
             Sprint sprint = sprintService.getSprintById(UUID.fromString(sprintId));
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(messageContent);
-            String content = jsonNode.has("content") ? jsonNode.get("content").asText() : messageContent;
-
+            // Extract content directly from the deserialized payload
+            String content = payload.get("content");
             Message message = new Message();
             message.setContent(new MessageContent(content));
             message.setSender(sender);
@@ -162,25 +162,23 @@ public class MessageController {
     }
 
     @MessageMapping("/chat/epic/{epicId}")
-    public void handleEpicMessage(@DestinationVariable String epicId, String messageContent,
-                             org.springframework.messaging.simp.stomp.StompHeaderAccessor headerAccessor) {
+    public void handleEpicMessage(@DestinationVariable String epicId, @Payload Map<String, String> payload,
+                              org.springframework.messaging.simp.stomp.StompHeaderAccessor headerAccessor) {
         try {
             String username = headerAccessor.getUser() != null ? headerAccessor.getUser().getName() : null;
-            
+
             if (username == null) {
                 throw new RuntimeException("User not authenticated");
             }
-            
+
             User sender = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
             Epic epic = epicService.getEpicById(UUID.fromString(epicId))
                     .orElseThrow(() -> new RuntimeException("Epic not found: " + epicId));
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(messageContent);
-            String content = jsonNode.has("content") ? jsonNode.get("content").asText() : messageContent;
-
+            // Extract content directly from the deserialized payload
+            String content = payload.get("content");
             Message message = new Message();
             message.setContent(new MessageContent(content));
             message.setSender(sender);
@@ -205,25 +203,23 @@ public class MessageController {
     }
 
     @MessageMapping("/chat/user-story/{userStoryId}")
-    public void handleUserStoryMessage(@DestinationVariable String userStoryId, String messageContent,
-                             org.springframework.messaging.simp.stomp.StompHeaderAccessor headerAccessor) {
+    public void handleUserStoryMessage(@DestinationVariable String userStoryId, @Payload Map<String, String> payload,
+                                  org.springframework.messaging.simp.stomp.StompHeaderAccessor headerAccessor) {
         try {
             String username = headerAccessor.getUser() != null ? headerAccessor.getUser().getName() : null;
-            
+
             if (username == null) {
                 throw new RuntimeException("User not authenticated");
             }
-            
+
             User sender = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
             UserStory userStory = userStoryService.getUserStoryById(UUID.fromString(userStoryId))
                     .orElseThrow(() -> new RuntimeException("User Story not found: " + userStoryId));
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(messageContent);
-            String content = jsonNode.has("content") ? jsonNode.get("content").asText() : messageContent;
-
+            // Extract content directly from the deserialized payload
+            String content = payload.get("content");
             Message message = new Message();
             message.setContent(new MessageContent(content));
             message.setSender(sender);
@@ -248,25 +244,23 @@ public class MessageController {
     }
 
     @MessageMapping("/chat/task/{taskId}")
-    public void handleTaskMessage(@DestinationVariable String taskId, String messageContent,
-                             org.springframework.messaging.simp.stomp.StompHeaderAccessor headerAccessor) {
+    public void handleTaskMessage(@DestinationVariable String taskId, @Payload Map<String, String> payload,
+                              org.springframework.messaging.simp.stomp.StompHeaderAccessor headerAccessor) {
         try {
             String username = headerAccessor.getUser() != null ? headerAccessor.getUser().getName() : null;
-            
+
             if (username == null) {
                 throw new RuntimeException("User not authenticated");
             }
-            
+
             User sender = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
             Task task = taskService.getTaskById(UUID.fromString(taskId))
                     .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(messageContent);
-            String content = jsonNode.has("content") ? jsonNode.get("content").asText() : messageContent;
-
+            // Extract content directly from the deserialized payload
+            String content = payload.get("content");
             Message message = new Message();
             message.setContent(new MessageContent(content));
             message.setSender(sender);
